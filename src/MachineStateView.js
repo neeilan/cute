@@ -6,6 +6,7 @@ import Col from 'react-bootstrap/Col'
 import Button from 'react-bootstrap/Button'
 import InputGroup from 'react-bootstrap/InputGroup'
 import FormControl from 'react-bootstrap/FormControl'
+import Badge from 'react-bootstrap/Badge'
 
 import CuteMachine from './cute'
 const Assemble = require('./assembler');
@@ -102,6 +103,14 @@ class MachineStateView extends React.Component {
 
     }
 
+    availableInstrs() {
+        const instrs = [];
+        for (const [name, code] of Object.entries(this.machine.OPS)) {
+            instrs.push({ name: name, opCode: code });
+          }
+        return instrs;
+    }
+
     render() {
         const bytes = this.state.memory.slice(this.state.memDisplayStartAddr,
             this.state.memDisplayStartAddr + this.numAddrsToDisplay);
@@ -132,7 +141,7 @@ class MachineStateView extends React.Component {
             );
         });
 
-        return <div class="monospaced">
+        return <div className="monospaced">  {/* <<  Flip this as needed */}
             <Container>
                 <Row style={{ textAlign: "center" }}>
                     <Col md={2}>
@@ -174,32 +183,47 @@ class MachineStateView extends React.Component {
                     </Col>
                 </Row>
 
-                                <hr/>
+                <hr />
 
                 <Row style={{ textAlign: "center", marginTop: '10px' }}>
-                        <Col sm={6}>
+                    <Col sm={6}>
                         <Row><Col style={{ marginBottom: '10px' }}><b>Assembler</b></Col></Row>
-                            <Row>
-                                <textarea placeholder="Assembly Editor"
-                                    style={{ width: '100%', height: '100%', minHeight: '100px', paddingLeft: '10px', borderColor: 'lightgray' }}
-                                    value={this.state.asmArea}
-                                    onChange={e => this.asmAreaEdit(e.target.value)} />
-                            </Row>
-                            <Row>
-                                <Col sm={12}>
-                                    <InputGroup style={{marginTop: '5px'}}>
-                                        <FormControl
-                                            onChange={(e) => this.setLoadAddr(e.target.value)}
-                                            placeholder="Custom load address"
-                                        />
-                                        <InputGroup.Append>
-                                            <Button onClick={() => this.assemble()}>Assemble</Button>
-                                        </InputGroup.Append>
-                                    </InputGroup>
-                                </Col>
-                            </Row>
-                        </Col>
+                        <Row>
+                            <textarea placeholder="Assembly Editor"
+                                style={{ width: '100%', height: '100%', minHeight: '100px', paddingLeft: '10px', borderColor: 'lightgray' }}
+                                value={this.state.asmArea}
+                                onChange={e => this.asmAreaEdit(e.target.value)} />
+                        </Row>
+                        <Row>
+                            <Col sm={12}>
+                                <InputGroup style={{ marginTop: '5px' }}>
+                                    <FormControl
+                                        onChange={(e) => this.setLoadAddr(e.target.value)}
+                                        placeholder="Custom load address"
+                                    />
+                                    <InputGroup.Append>
+                                        <Button onClick={() => this.assemble()}>Assemble</Button>
+                                    </InputGroup.Append>
+                                </InputGroup>
+                            </Col>
+                        </Row>
+                    </Col>
+
+
+                    <Col sm={6}>
+                        <Row><Col style={{ marginBottom: '10px' }}><b>Instruction Set</b></Col></Row>
+                        <Row>
+                            <Col sm={12} style={{ overflowY: 'scroll' }}>
+                                <h5>
+                                    { this.availableInstrs().map(instr => <><Badge pillow variant="secondary">{instr.name}</Badge>{' '}</> )}
+                                </h5>
+                            </Col>
+                        </Row>
+                    </Col>
+
                 </Row>
+                <Row><hr /></Row>
+
 
             </Container>
         </div >
