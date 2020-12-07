@@ -27,8 +27,8 @@ class MachineStateView extends React.Component {
         super(props);
         const memory = new Array(1024).fill(0);
         this.machine = new CuteMachine(memory, alert);
-        this.numAddrsToDisplay = 48;
-        this.numBytesPerRow = 8;
+        this.numAddrsToDisplay = 96;
+        this.numBytesPerRow = 16;
         this.state = {
             memory: memory,
             memDisplayStartAddr: 0,
