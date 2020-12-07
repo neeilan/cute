@@ -16,6 +16,7 @@ function lex(source) {
     const tokens = [];
     let currTok = [];
     let inComment = false;
+
     source.split('').forEach(c => {
         if (c == '\n') {
             inComment = false;
@@ -33,11 +34,13 @@ function lex(source) {
             currTok.push(c);
         }
     });
+
     if (!inComment) {
         var token = currTok.join('').trim();
-        if (!token) return;
+        if (!token) return tokens;
         tokens.push(token);
     }
+
     console.log(tokens);
     return tokens;
 }
@@ -55,12 +58,10 @@ function assemble(tokens, machine) {
         let opMeta = machine.OPCODES[op];
         if (opMeta.name == "LABEL") {
             const label = tokens[i+1];
-            const target = tokens[i+2];
             labels[label] = labelNum++;
         }
         i += opMeta.args + 1;
     }
-
     i = 0;
     while (i < tokens.length) {
         const opStr = tokens[i];
