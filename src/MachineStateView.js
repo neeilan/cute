@@ -16,8 +16,9 @@ const Assemble = require('./assembler');
 */
 
 const STYLES = {
-    ripBgColor: 'lightsalmon',
-    ripColor: 'white',
+    ripBgColor: 'LavenderBlush',
+    ripColor: 'black',
+    tableHeaderColor : 'ivory'
 
 };
 
@@ -122,7 +123,7 @@ class MachineStateView extends React.Component {
             for (let i = 0; i < this.numBytesPerRow; i++) { cols.push(i); }
             memTable.push(
                 <tr>
-                    <td style={{ backgroundColor: 'cornsilk' }}>{this.state.memDisplayStartAddr + i}</td>
+                    <td style={{ backgroundColor: STYLES.tableHeaderColor }}>{this.state.memDisplayStartAddr + i}</td>
                     {cols.map(
                         offset => <td key={`mem-${i + offset}`}
                             style={{ backgroundColor: ripValueAdj === i + offset ? STYLES.ripBgColor : '' }}>
@@ -151,7 +152,7 @@ class MachineStateView extends React.Component {
                                 {this.state.registers.map((value, i) => {
                                     const isRip = this.machine.REGISTER_NAMES[i] === 'RIP';
                                     return <tr>
-                                        <td>{this.machine.REGISTER_NAMES[i]}</td>
+                                        <td style={{ backgroundColor: STYLES.tableHeaderColor }}>{this.machine.REGISTER_NAMES[i]}</td>
                                         <td key={`mem-${i}`} style={{ backgroundColor: isRip ? STYLES.ripBgColor : '' }}>
                                             <input type="text"
                                                 style={{ width: '100%', border: 'none', backgroundColor: isRip ? STYLES.ripBgColor : '' }}
@@ -164,26 +165,31 @@ class MachineStateView extends React.Component {
                         <Row>
                             <Col>
                                 <Button variant="light" onClick={() => this.run()}>Run</Button>
-                                <Button variant="light" onClick={() => this.step()}>Step</Button>
+                                <Button style={{marginLeft: '2px'}} variant="light" onClick={() => this.step()}>Step</Button>
                             </Col>
                         </Row>
                     </Col>
                     <Col md={9}>
+                        <Col md={12}>
                         <Row><Col style={{ marginBottom: '10px' }}><b>Memory</b></Col></Row>
                         <Table bordered responsive size="sm">
                             <tbody>
                                 {memTable}
                             </tbody>
                         </Table>
-                        <Row style={{ marginBottom: '5px' }}>
+                        <Row style={{ marginBottom: '5px', marginLeft: '5px' }}>
                             <Button variant="light" onClick={() => this.memPrev()}> {'<'} </Button>
-                            <Button variant="light" onClick={() => this.memNext()}> {'>'} </Button>
+                            <Button style={{marginLeft: '2px'}} variant="light" onClick={() => this.memNext()}> {'>'} </Button>
                             <input type="text" style={{ border: 'solid 1px lightgray', marginLeft: '15px', paddingLeft: '10px' }} onChange={(e) => this.inspectAddr(e.target.value)} placeholder="Go to address" />
                         </Row>
+                        </Col>
                     </Col>
                 </Row>
 
+                <br/>
                 <hr />
+                <br/>
+
 
                 <Row style={{ textAlign: "center", marginTop: '10px' }}>
                     <Col sm={6}>
@@ -199,10 +205,10 @@ class MachineStateView extends React.Component {
                                 <InputGroup style={{ marginTop: '5px' }}>
                                     <FormControl
                                         onChange={(e) => this.setLoadAddr(e.target.value)}
-                                        placeholder="Custom load address"
+                                        placeholder="Address to load program at (Default = 0)"
                                     />
                                     <InputGroup.Append>
-                                        <Button onClick={() => this.assemble()}>Assemble</Button>
+                                        <Button variant="info" onClick={() => this.assemble()}>Load</Button>
                                     </InputGroup.Append>
                                 </InputGroup>
                             </Col>
@@ -215,16 +221,13 @@ class MachineStateView extends React.Component {
                         <Row>
                             <Col sm={12} style={{ overflowY: 'scroll' }}>
                                 <h5>
-                                    { this.availableInstrs().map(instr => <><Badge pill variant="secondary">{instr.name}</Badge>{' '}</> )}
+                                    { this.availableInstrs().map(instr => <><Badge pill variant="light">{instr.name}</Badge>{' '}</> )}
                                 </h5>
                             </Col>
                         </Row>
                     </Col>
 
                 </Row>
-                <Row><hr /></Row>
-
-
             </Container>
         </div >
     };
