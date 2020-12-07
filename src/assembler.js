@@ -39,12 +39,30 @@ function lex(code) {
 
 function assemble(tokens) {
     const code = [];
+    const labels = {}; let labelNum = 1;
     let i = 0;
     while (i < tokens.length) {
         const opStr = tokens[i];
         const op = machine.OPS[opStr];
         if (!op) {
-            throw new Error("Parsing error. Expected op at index " + i.toString());
+            throw new Error("Parsing error. Expected op at index " + i.toString() + " but got " + opStr);
+        }
+        let opMeta = machine.OPCODES[op];
+        if (opMeta.name == "LABEL") {
+            const label = tokens[i+1];
+            const target = tokens[i+2];
+            labels[label] = labelNum++;
+        }
+        i += opMeta.args + 1;
+    }
+
+    i = 0;
+    while (i < tokens.length) {
+        const opStr = tokens[i];
+        const op = machine.OPS[opStr];
+        if (!op) {
+            throw new Error("Parsing error. Expected op at index " + i.toString() + " but got " + opStr);
+
         }
 
         code.push(op);
@@ -60,14 +78,18 @@ function assemble(tokens) {
                 throw new Error("Parse runs past code area");
             }
             const arg = tokens[i + j];
+            const argAsInt = parseInt(arg);
             if (machine.REGISTER_NUMS[arg] !== undefined) {
                 code.push(machine.REGISTER_NUMS[arg]);
+            } else if (isNaN(argAsInt) && labels[arg] !== undefined) { // labels cannot start w a number
+                code.push( labels[arg] );
             } else {
                 code.push( parseInt(arg) );
             }
         }
         i += opMeta.args + 1;
     }
+    console.log(labels);
     console.log(code);
     return code;
 }
@@ -93,10 +115,21 @@ function memLoadWillOverwrite(memory , addr, contents) {
     return false;
 }
 
+source = `
+    SETI R0 0
+    SETI R1 1
+    LABEL "ADDANDINCR"
+    ADD R0 R1
+    ADDI R1 1
+    JMPEQIL R1 11 "PRINTRES"
+    JMPL "ADDANDINCR"
+    LABEL "PRINTRES"
+    PRINT R0
+  `;
+
 let tokens = lex(source);
 let asm = assemble(tokens);
 machine.memory = asm;
 machine.execute();
 
 
-console.log(memLoadWillOverwrite([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 8, [1 ,2, 2, 2, 3]))
