@@ -56,13 +56,20 @@ function assemble(tokens, machine) {
             throw new Error("Parsing error. Expected op at index " + i.toString() + " but got " + opStr);
         }
         let opMeta = machine.OPCODES[op];
-        if (opMeta.name == "LABEL") {
+        if (opMeta.name == "DATA") {
+            const label = tokens[i+1];
+            labels[label] = labelNum++;
+            const length = parseInt(tokens[i+2]);
+            i += length;
+        } else if (opMeta.name == "LABEL") {
             const label = tokens[i+1];
             labels[label] = labelNum++;
         }
         i += opMeta.args + 1;
     }
     i = 0;
+    console.log(labels)
+
     while (i < tokens.length) {
         const opStr = tokens[i];
         const op = machine.OPS[opStr];
@@ -72,11 +79,6 @@ function assemble(tokens, machine) {
 
         code.push(op);
         let opMeta = machine.OPCODES[op];
-
-        // TODO: Handle this case
-        if (opMeta.varLen) {
-            // Variable-length instruction
-        }
         let j = 0;
         while (j++ < opMeta.args) {
             if (i + j >= tokens.length) {
@@ -91,11 +93,20 @@ function assemble(tokens, machine) {
             } else {
                 code.push( parseInt(arg) );
             }
+
+            if (opMeta.varLen && j === opMeta.args) {
+                // Fixed args parsed - last one is number of true args which we parse now
+                const numVarArgs = code[code.length-1];
+                for (let k = 1; k <= numVarArgs; k++) {
+                    const varArg = tokens[i + j  + k];
+                    code.push(parseInt(varArg));
+                }
+                i += numVarArgs;
+            }
         }
         i += opMeta.args + 1;
     }
     console.log(labels);
-    console.log(code);
     return code;
 }
 

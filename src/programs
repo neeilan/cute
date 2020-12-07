@@ -1,0 +1,59 @@
+  # Checks if the chat R0 points to is a number
+  # if yes, prints 1, otherwise prints 0
+  DATA "Src" 4 30 45 54 60
+  SETI R0 6 # R0 is the 'current char' pointer
+
+LABEL "CHECKIFNUM"
+  LOAD R3 R0
+  SETI R4 48
+  JMPLT R3 R4 "NAN" 
+  SETI R4 57
+  JMPGT R3 R4 "NAN"
+  SETI R1 1
+  # PRINT R1
+  JMPL "DONE"
+
+  LABEL "NAN"
+  SETI R0 0  # Not working with a number - print 0
+  # PRINT R0
+  LABEL "DONE"
+  JMPL "CALLSITE"
+
+  ================
+
+  'function' that checks if the byte pointed to by R0 is a digit or not
+DATA "Src" 4 30 45 54 60
+
+# R0 is the 'current char' pointer
+LABEL "MAIN"
+  SETI R0 3
+  JMPL "CHECKIFNUM"
+  LABEL "RETURNADDR"
+  PRINT R1
+  HALT
+  
+LABEL "CHECKIFNUM"
+  LOAD R3 R0
+  SETI R4 48
+  JMPLT R3 R4 "NAN" 
+  SETI R4 57
+  JMPGT R3 R4 "NAN"
+  SETI R1 1
+  JMPL "DONE"
+  LABEL "NAN"
+  SETI R1 0
+  # PRINT R1
+  LABEL "DONE"
+  JMPL "RETURNADDR"
+  
+
+LABEL "CHECKIFNUM"
+  LOAD R3 R0
+  SETI R4 48
+  JMPLT R3 R4 "NAN" 
+  SETI R4 57
+  JMPGT R3 R4 "NAN"
+  SETI R1 1
+  # PRINT R1
+  LABEL "DONE"
+  JMPL "RETURNADDR"
