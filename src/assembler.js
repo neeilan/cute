@@ -1,22 +1,22 @@
 const CuteMachine = require('./cute');
 
-const memory = [];
-const machine = new CuteMachine(memory);
+// const memory = [];
+// const machine = new CuteMachine(memory);
 
-memory.push(machine.OPS.PRINT, machine.REGISTER_NUMS.RIP);
-memory.push(machine.OPS.PRINT, machine.REGISTER_NUMS.RIP);
+// memory.push(machine.OPS.PRINT, machine.REGISTER_NUMS.RIP);
+// memory.push(machine.OPS.PRINT, machine.REGISTER_NUMS.RIP);
 
-var source = `
-    SETI R0 4 # Comment
-    # More comments
-    PRINT R0
-`;
+// var source = `
+//     SETI R0 4 # Comment
+//     # More comments
+//     PRINT R0
+// `;
 
-function lex(code) {
+function lex(source) {
     const tokens = [];
     let currTok = [];
     let inComment = false;
-    code.split('').forEach(c => {
+    source.split('').forEach(c => {
         if (c == '\n') {
             inComment = false;
         }
@@ -37,7 +37,7 @@ function lex(code) {
     return tokens;
 }
 
-function assemble(tokens) {
+function assemble(tokens, machine) {
     const code = [];
     const labels = {}; let labelNum = 1;
     let i = 0;
@@ -115,21 +115,39 @@ function memLoadWillOverwrite(memory , addr, contents) {
     return false;
 }
 
-source = `
-    SETI R0 0
-    SETI R1 1
-    LABEL "ADDANDINCR"
-    ADD R0 R1
-    ADDI R1 1
-    JMPEQIL R1 11 "PRINTRES"
-    JMPL "ADDANDINCR"
-    LABEL "PRINTRES"
-    PRINT R0
-  `;
+const Assemble = function(machine, source, loadAtAddr=0) {
+    const tokens = lex(source);
+    const asm = assemble(tokens, machine);
+    memLoad(machine.memory, loadAtAddr, asm);
+    // machine.execute();
+};
 
-let tokens = lex(source);
-let asm = assemble(tokens);
-machine.memory = asm;
-machine.execute();
+module.exports = Assemble;
+
+// source = `
+//     SETI R0 0
+//     SETI R1 1
+//     LABEL "ADDANDINCR"
+//     ADD R0 R1
+//     ADDI R1 1
+//     JMPEQIL R1 11 "PRINTRES"
+//     JMPL "ADDANDINCR"
+//     LABEL "PRINTRES"
+//     PRINT R0
+//   `;
+
+// SETI R0 0
+// SETI R1 1
+// LABEL "ADDANDINCR"
+// ADD R0 R1
+// ADDI R1 1
+// JMPEQIL R1 11 "PRINTRES"
+// JMPL "ADDANDINCR"
+// LABEL "PRINTRES"
+// PRINT R0
+
+// let machine = new CuteMachine(new Array(128).fill(0));
+// Assemble(machine, source);
+// machine.execute();
 
 

@@ -44,6 +44,7 @@ const OPCODES = {
 };
 
 const OPS = {
+  NOOP : 0,
   ADD : 1,
   ADDI : 2,
   SUB : 3,
@@ -68,6 +69,7 @@ const OPS = {
 };
 
 const
+    NOOP = 0,
     ADD = 1,
     ADDI = 2,
     SUB = 3,
@@ -179,6 +181,9 @@ function _execute(memory, registers, codeStart, codeEnd, oneStep, print) {
   while (registers[RIP] < codeEnd) {
     var rip = registers[RIP];
     switch (memory[rip]) {
+      case NOOP:
+        registers[RIP] += numArgs[memory[rip]] + 1;
+        break;
       case PRINT:
         print(registers[memory[rip + 1]]);
         registers[RIP] += numArgs[memory[rip]] + 1;

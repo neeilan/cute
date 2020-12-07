@@ -6,6 +6,7 @@ import Col from 'react-bootstrap/Col'
 import Button from 'react-bootstrap/Button'
 
 import CuteMachine from './cute'
+const Assemble = require('./assembler');
 
 /* props: setMemory(idx, value str) 
           memory : []
@@ -30,6 +31,7 @@ class MachineStateView extends React.Component {
             registers: this.machine.registers,
             source: '',
             asmArea: '',
+            loadAddr : 0,
         };
 
     }
@@ -48,6 +50,17 @@ class MachineStateView extends React.Component {
         this.setState({ registers: this.machine.registers });
     }
 
+    setLoadAddr(val) {
+        val = parseInt(val);
+        if (isNaN(val) || val >= this.machine.memory.length ) { val = 0; }
+        this.setState({ loadAddr: val });        
+    }
+
+    run() {
+        this.machine.execute();
+        this.setState({ registers: this.machine.registers, memory: this.machine.memory });       
+    }
+
     step() {
         this.machine.executeStep();
         this.setState({ registers: this.machine.registers, memory: this.machine.memory });
@@ -62,6 +75,15 @@ class MachineStateView extends React.Component {
 
     asmAreaEdit(e) {
         this.setState({ asmArea: e });
+    }
+
+    assemble() {
+        try {
+        Assemble(this.machine, this.state.asmArea, this.state.loadAddr);
+        } catch (e) {
+            alert(e);
+        }
+        this.setState({ registers: this.machine.registers, memory: this.machine.memory });
     }
 
     render() {
@@ -123,7 +145,7 @@ class MachineStateView extends React.Component {
                         <Table responsive size="sm">
                             <tbody>
                                 <tr>
-                                    <td><Button variant="light">Run</Button></td>
+                                    <td><Button variant="light" onClick={() => this.run()}>Run</Button></td>
                                     <td><Button variant="light" onClick={() => this.step()}>Step</Button></td>
                                     <td><Button variant="light">ASCII</Button></td>
                                     <td><input type="text" onChange={(e) => this.inspectAddr(e.target.value)} placeholder="Address to inspect" /></td>
@@ -138,7 +160,8 @@ class MachineStateView extends React.Component {
                                             value={this.state.asmArea}
                                             onChange={e => this.asmAreaEdit(e.target.value)} />
                                     </td>
-                                    <td sm={3}><input type="text" placeholder="Load at address" /></td>
+                                    <td sm={3}><Button onClick={() => this.assemble()}>Assemble</Button></td>
+                                    <td sm={3}><input type="text" placeholder="Load at address" onChange={(e) => this.setLoadAddr(e.target.value)} /></td>
                                     <td><Button variant="light">Load</Button></td>
                                 </tr>
                             </tbody>
