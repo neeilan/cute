@@ -27,7 +27,7 @@ const OPCODES = {
   5: { name: 'ASSERT', args: 1 },
   6: { name: 'LABEL', args: 1 },
   7: { name: 'JMPL', args: 1 },
-  8: { name: 'JMPGT', args: 2 },
+  8: { name: 'JMPGT', args: 3 },
   9: { name: 'JMPGTE', args: 2 },
   10: { name: 'JMPEQ', args: 2 },
   11: { name: 'PRINT', args: 1 },
@@ -92,7 +92,7 @@ const
     JMPEQL = 20,
     SET = 21;
 
-const numArgs = [0, 2, 2, 2, 2, 1, 1, 1, 2, 2,2, 1, 2, 1, 3, 3, 1, /*DATA*/ 2, 1, 1, 3, 2];
+const numArgs = [0, 2, 2, 2, 2, 1, 1, 1, 3, 2,2, 1, 2, 1, 3, 3, 1, /*DATA*/ 2, 1, 1, 3, 2];
 const registers = [0, 0, 0, 0, 0, 0, 0];
 const R0 = 0, R1 = 1, R2=2, R3=3, R4=4, RIP=5, RSP=6;
 
@@ -221,6 +221,15 @@ function _execute(memory, registers, codeStart, codeEnd, oneStep, print) {
           registers[RIP] = memory[rip + 3];
         } else {
         registers[RIP] += numArgs[memory[rip]] + 1;
+        }
+       break;
+      case JMPGT:
+        lhs = registers[memory[rip + 1]];
+        rhs = registers[memory[rip + 2]];
+        if (lhs > rhs) {
+          registers[RIP] = registers[memory[rip + 3]];
+        } else {
+          registers[RIP] += numArgs[memory[rip]] + 1;
         }
        break;
       case JMPEQIL:

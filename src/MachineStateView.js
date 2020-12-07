@@ -215,7 +215,7 @@ class MachineStateView extends React.Component {
                         <Row>
                             <Col sm={12} style={{ overflowY: 'scroll' }}>
                                 <h5>
-                                    { this.availableInstrs().map(instr => <><Badge pillow variant="secondary">{instr.name}</Badge>{' '}</> )}
+                                    { this.availableInstrs().map(instr => <><Badge pill variant="secondary">{instr.name}</Badge>{' '}</> )}
                                 </h5>
                             </Col>
                         </Row>

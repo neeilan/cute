@@ -52,7 +52,7 @@ function assemble(tokens, machine) {
     while (i < tokens.length) {
         const opStr = tokens[i];
         const op = machine.OPS[opStr];
-        if (!op) {
+        if (op === undefined) {
             throw new Error("Parsing error. Expected op at index " + i.toString() + " but got " + opStr);
         }
         let opMeta = machine.OPCODES[op];
@@ -66,9 +66,8 @@ function assemble(tokens, machine) {
     while (i < tokens.length) {
         const opStr = tokens[i];
         const op = machine.OPS[opStr];
-        if (!op) {
+        if (op === undefined) {
             throw new Error("Parsing error. Expected op at index " + i.toString() + " but got " + opStr);
-
         }
 
         code.push(op);
@@ -156,4 +155,14 @@ module.exports = Assemble;
 // Assemble(machine, source);
 // machine.execute();
 
+
+// SETI R1 14
+// SETI R2 16
+// SETI R3 17
+// JMPGT R1 R2 R3
+// PRINT R2
+// JMPL DONE
+// PRINT R1
+// LABEL DONE
+// NOOP
 
