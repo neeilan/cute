@@ -4,6 +4,8 @@ import Container from 'react-bootstrap/Container'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import Button from 'react-bootstrap/Button'
+import InputGroup from 'react-bootstrap/InputGroup'
+import FormControl from 'react-bootstrap/FormControl'
 
 import CuteMachine from './cute'
 const Assemble = require('./assembler');
@@ -21,9 +23,9 @@ const STYLES = {
 class MachineStateView extends React.Component {
     constructor(props) {
         super(props);
-        const memory = new Array(128).fill(0);
+        const memory = new Array(1024).fill(0);
         this.machine = new CuteMachine(memory, alert);
-        this.numAddrsToDisplay = 64;
+        this.numAddrsToDisplay = 48;
         this.numBytesPerRow = 8;
         this.state = {
             memory: memory,
@@ -31,7 +33,7 @@ class MachineStateView extends React.Component {
             registers: this.machine.registers,
             source: '',
             asmArea: '',
-            loadAddr : 0,
+            loadAddr: 0,
         };
 
     }
@@ -52,13 +54,13 @@ class MachineStateView extends React.Component {
 
     setLoadAddr(val) {
         val = parseInt(val);
-        if (isNaN(val) || val >= this.machine.memory.length ) { val = 0; }
-        this.setState({ loadAddr: val });        
+        if (isNaN(val) || val >= this.machine.memory.length) { val = 0; }
+        this.setState({ loadAddr: val });
     }
 
     run() {
         this.machine.execute();
-        this.setState({ registers: this.machine.registers, memory: this.machine.memory });       
+        this.setState({ registers: this.machine.registers, memory: this.machine.memory });
     }
 
     step() {
@@ -79,11 +81,25 @@ class MachineStateView extends React.Component {
 
     assemble() {
         try {
-        Assemble(this.machine, this.state.asmArea, this.state.loadAddr);
+            Assemble(this.machine, this.state.asmArea, this.state.loadAddr);
         } catch (e) {
             alert(e);
         }
         this.setState({ registers: this.machine.registers, memory: this.machine.memory });
+    }
+
+    memPrev() {
+        let newAddr = this.state.memDisplayStartAddr - this.numAddrsToDisplay;
+        if (newAddr < 0) newAddr = 0;
+        this.setState({ memDisplayStartAddr: newAddr });
+
+    }
+
+    memNext() {
+        const newAddr = this.state.memDisplayStartAddr + this.numAddrsToDisplay;
+        if (newAddr >= this.machine.memory.length) return;
+        this.setState({ memDisplayStartAddr: newAddr });
+
     }
 
     render() {
@@ -116,10 +132,11 @@ class MachineStateView extends React.Component {
             );
         });
 
-        return <div>
+        return <div class="monospaced">
             <Container>
                 <Row style={{ textAlign: "center" }}>
                     <Col md={2}>
+                        <Row><Col style={{ marginBottom: '10px' }}><b>CPU</b></Col></Row>
                         <Table bordered responsive size="sm">
                             <tbody>
                                 {this.state.registers.map((value, i) => {
@@ -135,41 +152,57 @@ class MachineStateView extends React.Component {
                                 })}
                             </tbody>
                         </Table>
+                        <Row>
+                            <Col>
+                                <Button variant="light" onClick={() => this.run()}>Run</Button>
+                                <Button variant="light" onClick={() => this.step()}>Step</Button>
+                            </Col>
+                        </Row>
                     </Col>
                     <Col md={9}>
+                        <Row><Col style={{ marginBottom: '10px' }}><b>Memory</b></Col></Row>
                         <Table bordered responsive size="sm">
                             <tbody>
                                 {memTable}
                             </tbody>
                         </Table>
-                        <Table responsive size="sm">
-                            <tbody>
-                                <tr>
-                                    <td><Button variant="light" onClick={() => this.run()}>Run</Button></td>
-                                    <td><Button variant="light" onClick={() => this.step()}>Step</Button></td>
-                                    <td><Button variant="light">ASCII</Button></td>
-                                    <td><input type="text" onChange={(e) => this.inspectAddr(e.target.value)} placeholder="Address to inspect" /></td>
-                                </tr>
-                            </tbody>
-                        </Table>
-                        <Table responsive>
-                            <tbody>
-                                <tr>
-                                    <td sm={9}>
-                                        <textarea placeholder="Assembly Editor"
-                                            value={this.state.asmArea}
-                                            onChange={e => this.asmAreaEdit(e.target.value)} />
-                                    </td>
-                                    <td sm={3}><Button onClick={() => this.assemble()}>Assemble</Button></td>
-                                    <td sm={3}><input type="text" placeholder="Load at address" onChange={(e) => this.setLoadAddr(e.target.value)} /></td>
-                                    <td><Button variant="light">Load</Button></td>
-                                </tr>
-                            </tbody>
-                        </Table>
+                        <Row style={{ marginBottom: '5px' }}>
+                            <Button variant="light" onClick={() => this.memPrev()}> {'<'} </Button>
+                            <Button variant="light" onClick={() => this.memNext()}> {'>'} </Button>
+                            <input type="text" style={{ border: 'solid 1px lightgray', marginLeft: '15px', paddingLeft: '10px' }} onChange={(e) => this.inspectAddr(e.target.value)} placeholder="Go to address" />
+                        </Row>
                     </Col>
                 </Row>
+
+                                <hr/>
+
+                <Row style={{ textAlign: "center", marginTop: '10px' }}>
+                        <Col sm={6}>
+                        <Row><Col style={{ marginBottom: '10px' }}><b>Assembler</b></Col></Row>
+                            <Row>
+                                <textarea placeholder="Assembly Editor"
+                                    style={{ width: '100%', height: '100%', minHeight: '100px', paddingLeft: '10px', borderColor: 'lightgray' }}
+                                    value={this.state.asmArea}
+                                    onChange={e => this.asmAreaEdit(e.target.value)} />
+                            </Row>
+                            <Row>
+                                <Col sm={12}>
+                                    <InputGroup style={{marginTop: '5px'}}>
+                                        <FormControl
+                                            onChange={(e) => this.setLoadAddr(e.target.value)}
+                                            placeholder="Custom load address"
+                                        />
+                                        <InputGroup.Append>
+                                            <Button onClick={() => this.assemble()}>Assemble</Button>
+                                        </InputGroup.Append>
+                                    </InputGroup>
+                                </Col>
+                            </Row>
+                        </Col>
+                </Row>
+
             </Container>
-        </div>
+        </div >
     };
 
 };

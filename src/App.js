@@ -1,5 +1,6 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import MachineStateView from './MachineStateView';
+import './App.css';
 
 function App() {
   return (
