@@ -33,6 +33,11 @@ function lex(source) {
             currTok.push(c);
         }
     });
+    if (!inComment) {
+        var token = currTok.join('').trim();
+        if (!token) return;
+        tokens.push(token);
+    }
     console.log(tokens);
     return tokens;
 }
