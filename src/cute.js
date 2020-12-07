@@ -19,7 +19,7 @@ const REGISTER_NUMS = {
 };
 
 const OPCODES = {
-  0: { name: 'NOOP', args: 0 },
+  0: { name: 'HALT', args: 0 },
   1: { name: 'ADD', args: 2 },
   2: { name: 'ADDI', args: 2 },
   3: { name: 'SUB', args: 2 },
@@ -28,7 +28,7 @@ const OPCODES = {
   6: { name: 'LABEL', args: 1 },
   7: { name: 'JMPL', args: 1 },
   8: { name: 'JMPGT', args: 3 },
-  9: { name: 'JMPGTE', args: 2 },
+  9: { name: 'JMPGTE', args: 3 },
   10: { name: 'JMPEQ', args: 2 },
   11: { name: 'PRINT', args: 1 },
   12: { name: 'SETI', args: 2 },
@@ -41,10 +41,13 @@ const OPCODES = {
   19: { name: 'PRINTBYTEI', args: 1 },
   20: { name: 'JMPEQL', args: 3 },
   21: { name: 'SET', args: 2 },
+  22: { name: 'JMPLT', args: 3 },
+  23: { name: 'JMPLTE', args: 3 },
+  24: { name: 'LOAD', args: 2 }, // Load Ra Rb - load memory at Rb to Ra
 };
 
 const OPS = {
-  NOOP : 0,
+  HALT : 0,
   ADD : 1,
   ADDI : 2,
   SUB : 3,
@@ -66,10 +69,13 @@ const OPS = {
   PRINTBYTEI : 19,
   JMPEQL : 20,
   SET : 21,
+  JMPLT: 22,
+  JMPLTE : 23,
+  LOAD: 24
 };
 
 const
-    NOOP = 0,
+    HALT = 0,
     ADD = 1,
     ADDI = 2,
     SUB = 3,
@@ -90,9 +96,14 @@ const
     PRINTSTRL = 18, // Print a string at a label
     PRINTBYTEI = 19,
     JMPEQL = 20,
-    SET = 21;
+    SET = 21,
+    JMPLT = 22,
+    JMPLTE = 23,
+    LOAD = 24;
 
-const numArgs = [0, 2, 2, 2, 2, 1, 1, 1, 3, 2,2, 1, 2, 1, 3, 3, 1, /*DATA*/ 2, 1, 1, 3, 2];
+const numArgs = [];
+Object.keys(OPCODES).forEach(k => numArgs.push(OPCODES[k].args));
+
 const registers = [0, 0, 0, 0, 0, 0, 0];
 const R0 = 0, R1 = 1, R2=2, R3=3, R4=4, RIP=5, RSP=6;
 
@@ -172,8 +183,11 @@ function _execute(memory, registers, codeStart, codeEnd, oneStep, print) {
     }
   }
 
-  // console.log(_labels);
+  console.log(_labels);
   // console.log(_statics);
+  // if (!oneStep && _labels['start'] !== undefined) {
+  //   registers[RIP] = _labels['start'];
+  // }
 
   // Execute
   // console.log("Executing...");
@@ -181,9 +195,9 @@ function _execute(memory, registers, codeStart, codeEnd, oneStep, print) {
   while (registers[RIP] < codeEnd) {
     var rip = registers[RIP];
     switch (memory[rip]) {
-      case NOOP:
+      case HALT:
         registers[RIP] += numArgs[memory[rip]] + 1;
-        break;
+        return;
       case PRINT:
         print(registers[memory[rip + 1]]);
         registers[RIP] += numArgs[memory[rip]] + 1;
@@ -227,6 +241,33 @@ function _execute(memory, registers, codeStart, codeEnd, oneStep, print) {
         lhs = registers[memory[rip + 1]];
         rhs = registers[memory[rip + 2]];
         if (lhs > rhs) {
+          registers[RIP] = _labels[memory[rip + 3]];
+        } else {
+          registers[RIP] += numArgs[memory[rip]] + 1;
+        }
+       break;
+       case JMPGTE:
+        lhs = registers[memory[rip + 1]];
+        rhs = registers[memory[rip + 2]];
+        if (lhs >= rhs) {
+          registers[RIP] = registers[memory[rip + 3]];
+        } else {
+          registers[RIP] += numArgs[memory[rip]] + 1;
+        }
+       break;
+       case JMPLT:
+        lhs = registers[memory[rip + 1]];
+        rhs = registers[memory[rip + 2]];
+        if (lhs < rhs) {
+          registers[RIP] = _labels[memory[rip + 3]];
+        } else {
+          registers[RIP] += numArgs[memory[rip]] + 1;
+        }
+        break;
+       case JMPLTE:
+        lhs = registers[memory[rip + 1]];
+        rhs = registers[memory[rip + 2]];
+        if (lhs <= rhs) {
           registers[RIP] = registers[memory[rip + 3]];
         } else {
           registers[RIP] += numArgs[memory[rip]] + 1;
@@ -264,6 +305,11 @@ function _execute(memory, registers, codeStart, codeEnd, oneStep, print) {
         const label =  memory[rip + 1]; 
         registers[RIP] +=  2 + memory[ _statics[label] ]  +  1 ; // label, size, num of chars, +1 offset
         break;
+      case LOAD:
+        registers[memory[rip+1]] = memory[registers[memory[rip+2]]];
+        console.log(`Load ${memory[registers[memory[rip+2]]]} into R${memory[rip+1]}`);
+        registers[RIP] += numArgs[memory[rip]] + 1;
+        break;
     }
 
     if (oneStep) break;
@@ -290,4 +336,29 @@ function CuteMachine(memory, print=console.log) {
 
 module.exports = CuteMachine;
 
-// new CuteMachine(memory).execute();
+const m = [
+  DATA, "Src", 3, c('5'), c('+'), c('3'),
+  SETI, R0, 5, // R0 is the 'current char' pointer
+
+  // LABEL, 'LOOP',
+  // Load current char into R3
+  PRINT, R0,
+  LOAD, R3, R0,
+  PRINT, R3,
+  // Is it >= '0' (48) ?
+  JMPLT, R3, 48, "NAN", 
+  // Is it also <= '9' (57) ?
+  JMPGT, R3, 57, "NAN",
+  // Working with a number! - print 1
+  SETI, R1, 1,
+  PRINT, R1,
+  JMPL, "DONE",
+
+  LABEL, "NAN",
+  SETI, R0, 0,  // Not working with a number - print 0
+  PRINT, R0,
+  LABEL, "DONE",
+  HALT,
+
+];
+new CuteMachine(m).execute();
