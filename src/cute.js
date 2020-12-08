@@ -196,8 +196,6 @@ function _execute(memory, registers, codeStart, codeEnd, oneStep, print) {
       currInstr += numArgs[opCode] + 1;
     }
   }
-
-  console.log(_labels);
   // console.log(_statics);
   // if (!oneStep && _labels['start'] !== undefined) {
   //   registers[RIP] = _labels['start'];
@@ -210,7 +208,7 @@ function _execute(memory, registers, codeStart, codeEnd, oneStep, print) {
     var rip = registers[RIP];
     switch (memory[rip]) {
       case HALT:
-        registers[RIP] += numArgs[memory[rip]] + 1;
+        // registers[RIP] += numArgs[memory[rip]] + 1;
         return;
       case PRINT:
         print(registers[memory[rip + 1]]);

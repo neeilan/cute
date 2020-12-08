@@ -88,6 +88,8 @@ class MachineStateView extends React.Component {
         let tokens = [];
         try {
             tokens = Assemble(this.machine, this.state.asmArea, this.state.loadAddr);
+            this.machine.registers[this.machine.REGISTER_NUMS['RSP']] = (this.state.loadAddr || 0) + tokens.length + 1;
+            console.log(this.state.registers)
             this.setState({ registers: this.machine.registers, memory: this.machine.memory, disasmTokens: tokens, disasmIsFresh: true });
 
         } catch (e) {
