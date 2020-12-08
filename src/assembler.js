@@ -135,7 +135,7 @@ const Assemble = function(machine, source, loadAtAddr=0) {
     const tokens = lex(source);
     const asm = assemble(tokens, machine);
     memLoad(machine.memory, loadAtAddr, asm);
-    // machine.execute();
+    return tokens;
 };
 
 module.exports = Assemble;

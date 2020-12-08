@@ -1,6 +1,14 @@
 .monospaced {
   font-family: monospace !important;
 }
+.disasm {
+  font-size: xx-small;
+  position: relative;
+  top: -2px;
+  right: -8px;
+  margin-bottom: -10px;
+  color: blue;
+}
 
 .App {
   text-align: center;

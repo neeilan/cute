@@ -36,6 +36,8 @@ class MachineStateView extends React.Component {
             source: '',
             asmArea: '',
             loadAddr: 0,
+            disasmTokens: [],
+            disasmIsFresh: false,
         };
 
     }
@@ -44,7 +46,7 @@ class MachineStateView extends React.Component {
         val = parseInt(val);
         if (isNaN(val)) { val = 0; }
         this.machine.memory[addr] = val;
-        this.setState({ memory: this.machine.memory });
+        this.setState({ memory: this.machine.memory, disasmIsFresh: false });
     }
 
     regSet(num, val) {
@@ -57,7 +59,8 @@ class MachineStateView extends React.Component {
     setLoadAddr(val) {
         val = parseInt(val);
         if (isNaN(val) || val >= this.machine.memory.length) { val = 0; }
-        this.setState({ loadAddr: val });
+        /* Changing load address invalidates disassembly */
+        this.setState({ loadAddr: val ,  disasmIsFresh: false  });
     }
 
     run() {
@@ -82,12 +85,16 @@ class MachineStateView extends React.Component {
     }
 
     assemble() {
+        let tokens = [];
         try {
-            Assemble(this.machine, this.state.asmArea, this.state.loadAddr);
+            tokens = Assemble(this.machine, this.state.asmArea, this.state.loadAddr);
+            this.setState({ registers: this.machine.registers, memory: this.machine.memory, disasmTokens: tokens, disasmIsFresh: true });
+
         } catch (e) {
             alert(e);
+            this.setState({ registers: this.machine.registers, memory: this.machine.memory, disasmTokens: [], disasmIsFresh: false });
+
         }
-        this.setState({ registers: this.machine.registers, memory: this.machine.memory });
     }
 
     memPrev() {
@@ -127,11 +134,19 @@ class MachineStateView extends React.Component {
                     <td style={{ backgroundColor: STYLES.tableHeaderColor }}>{this.state.memDisplayStartAddr + i}</td>
                     {cols.map(
                         offset => {
-                            const isRip = ripValueAdj === i + offset;
-                            const isRsp = rspValueAdj === i + offset;
+                            const addr = i + offset;
+                            const isRip = ripValueAdj === addr;
+                            const isRsp = rspValueAdj === addr;
                             const dynaColor = isRip ? STYLES.ripBgColor : (isRsp ? STYLES.rspBgColor : '');
+
+                            const disasmAvailable = this.state.disasmIsFresh &&
+                                addr >= this.state.loadAddr &&
+                                addr < (this.state.loadAddr + this.state.disasmTokens.length);
+
+
                             return <td key={`mem-${i + offset}`}
-                                style={{ backgroundColor: dynaColor }}>
+                                style={{ backgroundColor: dynaColor, overflow: 'hidden' }}>
+                        { disasmAvailable ? <div class="disasm">{this.state.disasmTokens[addr - this.state.loadAddr]}</div> : '' }
                                 <input
                                     type="text"
                                     style={{
