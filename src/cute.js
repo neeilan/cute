@@ -4,9 +4,9 @@ const REGISTER_NAMES = {
   2 : 'R2',
   3 : 'R3',
   4 : 'R4',
-  5 : 'RIP',
+  5 : 'RRA',
   6 : 'RSP',
-  7 : 'RRA',
+  7 : 'RIP',
 };
 
 const REGISTER_NUMS = {
@@ -15,9 +15,9 @@ const REGISTER_NUMS = {
   'R2' : 2,
   'R3' : 3,
   'R4' : 4,
-  'RIP': 5,
+  'RRA': 5,
   'RSP' : 6,
-  'RRA' : 7,
+  'RIP' : 7,
 };
 
 const OPCODES = {
@@ -119,7 +119,7 @@ const numArgs = [];
 Object.keys(OPCODES).forEach(k => numArgs.push(OPCODES[k].args));
 
 const registers = [0, 0, 0, 0, 0, 0, 0];
-const R0 = 0, R1 = 1, R2=2, R3=3, R4=4, RIP=5, RSP=6, RRA=7;
+const R0 = 0, R1 = 1, R2=2, R3=3, R4=4, RRA=5, RSP=6, RIP=7;
 
 
 let memory = [
@@ -353,7 +353,7 @@ function _execute(memory, registers, codeStart, codeEnd, oneStep, print) {
 // execute(0, memory.length);
 
 function CuteMachine(memory, print=console.log) {
-  this.registers = [0, 0, 0, 0, 0, 0, 0, 0];
+  this.registers = [0, 0, 0, 0, 0, 0, 64, 0];
   this.memory = memory;
   this.print=print;
 
