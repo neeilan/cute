@@ -119,7 +119,7 @@ const numArgs = [];
 Object.keys(OPCODES).forEach(k => numArgs.push(OPCODES[k].args));
 
 const registers = [0, 0, 0, 0, 0, 0, 0];
-const R0 = 0, R1 = 1, R2=2, R3=3, R4=4, RIP=5, RSP=6, RRA=8;
+const R0 = 0, R1 = 1, R2=2, R3=3, R4=4, RIP=5, RSP=6, RRA=7;
 
 
 let memory = [
@@ -333,8 +333,18 @@ function _execute(memory, registers, codeStart, codeEnd, oneStep, print) {
         registers[RIP] += numArgs[memory[rip]] + 1;
         break;
       case CALL:
+        // First push RRA to stack
+        memory[registers[RSP]++] = registers[RRA];
+        // Write addr of next instruction to RRA
+        registers[RRA] = registers[RIP] + numArgs[memory[rip]] + 1;
+        // Jump to label
+        registers[RIP] = _labels[memory[rip + 1]];
         break;
       case RET:
+        // Pop stack RA into RRA, then jump there
+        const ra = registers[RRA];
+        registers[RRA] = memory[--registers[RSP]];
+        registers[RIP] = ra;
         break;
     }
 
