@@ -60,7 +60,7 @@ class MachineStateView extends React.Component {
         val = parseInt(val);
         if (isNaN(val) || val >= this.machine.memory.length) { val = 0; }
         /* Changing load address invalidates disassembly */
-        this.setState({ loadAddr: val ,  disasmIsFresh: false  });
+        this.setState({ loadAddr: val, disasmIsFresh: false });
     }
 
     run() {
@@ -138,15 +138,15 @@ class MachineStateView extends React.Component {
                             const isRip = ripValueAdj === addr;
                             const isRsp = rspValueAdj === addr;
                             const dynaColor = isRip ? STYLES.ripBgColor : (isRsp ? STYLES.rspBgColor : '');
-
-                            const disasmAvailable = this.state.disasmIsFresh &&
-                                addr >= this.state.loadAddr &&
-                                addr < (this.state.loadAddr + this.state.disasmTokens.length);
+                            const absoluteAddr = addr + this.state.memDisplayStartAddr;
+                            const disasmAvailable = this.state.disasmIsFresh
+                                && absoluteAddr >= this.state.loadAddr
+                                && absoluteAddr < (this.state.loadAddr + this.state.disasmTokens.length);
 
 
                             return <td key={`mem-${i + offset}`}
                                 style={{ backgroundColor: dynaColor, overflow: 'hidden' }}>
-                        { disasmAvailable ? <div class="disasm">{this.state.disasmTokens[addr - this.state.loadAddr]}</div> : '' }
+                                {disasmAvailable ? <div class="disasm">{this.state.disasmTokens[absoluteAddr - this.state.loadAddr]}</div> : ''}
                                 <input
                                     type="text"
                                     style={{
