@@ -5,7 +5,8 @@ const REGISTER_NAMES = {
   3 : 'R3',
   4 : 'R4',
   5 : 'RIP',
-  6 : 'RSP'
+  6 : 'RSP',
+  7 : 'RRA',
 };
 
 const REGISTER_NUMS = {
@@ -16,6 +17,7 @@ const REGISTER_NUMS = {
   'R4' : 4,
   'RIP': 5,
   'RSP' : 6,
+  'RRA' : 7,
 };
 
 const OPCODES = {
@@ -44,6 +46,10 @@ const OPCODES = {
   22: { name: 'JMPLT', args: 3 },
   23: { name: 'JMPLTE', args: 3 },
   24: { name: 'LOAD', args: 2 }, // Load Ra Rb - load memory at Rb to Ra
+  25: { name: 'PUSH', args: 1 },
+  26: { name: 'POP', args: 1 },
+  27: { name: 'CALL', args: 1 },
+  28: { name: 'RET', args: 0 },
 };
 
 const OPS = {
@@ -71,7 +77,11 @@ const OPS = {
   SET : 21,
   JMPLT: 22,
   JMPLTE : 23,
-  LOAD: 24
+  LOAD: 24,
+  PUSH : 25,
+  POP : 26,
+  CALL : 27,
+  RET : 28,
 };
 
 const
@@ -99,13 +109,17 @@ const
     SET = 21,
     JMPLT = 22,
     JMPLTE = 23,
-    LOAD = 24;
+    LOAD = 24,
+    PUSH = 25,
+    POP = 26,
+    CALL = 27,
+    RET = 28;
 
 const numArgs = [];
 Object.keys(OPCODES).forEach(k => numArgs.push(OPCODES[k].args));
 
 const registers = [0, 0, 0, 0, 0, 0, 0];
-const R0 = 0, R1 = 1, R2=2, R3=3, R4=4, RIP=5, RSP=6;
+const R0 = 0, R1 = 1, R2=2, R3=3, R4=4, RIP=5, RSP=6, RRA=8;
 
 
 let memory = [
@@ -310,6 +324,18 @@ function _execute(memory, registers, codeStart, codeEnd, oneStep, print) {
         console.log(`Load ${memory[registers[memory[rip+2]]]} into R${memory[rip+1]}`);
         registers[RIP] += numArgs[memory[rip]] + 1;
         break;
+      case PUSH:
+        memory[registers[RSP]++] = registers[memory[rip+1]];
+        registers[RIP] += numArgs[memory[rip]] + 1;
+        break;
+      case POP:
+        registers[memory[rip+1]] = memory[--registers[RSP]];
+        registers[RIP] += numArgs[memory[rip]] + 1;
+        break;
+      case CALL:
+        break;
+      case RET:
+        break;
     }
 
     if (oneStep) break;
@@ -319,7 +345,7 @@ function _execute(memory, registers, codeStart, codeEnd, oneStep, print) {
 // execute(0, memory.length);
 
 function CuteMachine(memory, print=console.log) {
-  this.registers = [0, 0, 0, 0, 0, 0];
+  this.registers = [0, 0, 0, 0, 0, 0, 0, 0];
   this.memory = memory;
   this.print=print;
 

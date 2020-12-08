@@ -18,8 +18,8 @@ const Assemble = require('./assembler');
 const STYLES = {
     ripBgColor: 'LavenderBlush',
     ripColor: 'black',
-    tableHeaderColor : 'ivory'
-
+    tableHeaderColor: 'ivory',
+    rspBgColor: 'Lavender',
 };
 
 class MachineStateView extends React.Component {
@@ -27,7 +27,7 @@ class MachineStateView extends React.Component {
         super(props);
         const memory = new Array(1024).fill(0);
         this.machine = new CuteMachine(memory, alert);
-        this.numAddrsToDisplay = 96;
+        this.numAddrsToDisplay = 128;
         this.numBytesPerRow = 16;
         this.state = {
             memory: memory,
@@ -108,7 +108,7 @@ class MachineStateView extends React.Component {
         const instrs = [];
         for (const [name, code] of Object.entries(this.machine.OPS)) {
             instrs.push({ name: name, opCode: code });
-          }
+        }
         return instrs;
     }
 
@@ -117,6 +117,7 @@ class MachineStateView extends React.Component {
             this.state.memDisplayStartAddr + this.numAddrsToDisplay);
         const memTable = [];
         const ripValueAdj = this.state.registers[this.machine.REGISTER_NUMS.RIP] - this.state.memDisplayStartAddr;
+        const rspValueAdj = this.state.registers[this.machine.REGISTER_NUMS.RSP] - this.state.memDisplayStartAddr;
         bytes.forEach((_, i) => {
             if (i % this.numBytesPerRow !== 0) return;
             let cols = [];
@@ -125,19 +126,24 @@ class MachineStateView extends React.Component {
                 <tr>
                     <td style={{ backgroundColor: STYLES.tableHeaderColor }}>{this.state.memDisplayStartAddr + i}</td>
                     {cols.map(
-                        offset => <td key={`mem-${i + offset}`}
-                            style={{ backgroundColor: ripValueAdj === i + offset ? STYLES.ripBgColor : '' }}>
-                            <input
-                                type="text"
-                                style={{
-                                    width: '100%', border: 'none',
-                                    backgroundColor: ripValueAdj === i + offset ? STYLES.ripBgColor : '',
-                                    color: ripValueAdj === i + offset ? STYLES.ripColor : ''
-                                }}
-                                onChange={e => this.memSet(i + offset, e.target.value)}
-                                value={bytes[i + offset]}
-                                disabled={i + offset + this.state.memDisplayStartAddr >= this.state.memory.length}
-                            /> </td>)}
+                        offset => {
+                            const isRip = ripValueAdj === i + offset;
+                            const isRsp = rspValueAdj === i + offset;
+                            const dynaColor = isRip ? STYLES.ripBgColor : (isRsp ? STYLES.rspBgColor : '');
+                            return <td key={`mem-${i + offset}`}
+                                style={{ backgroundColor: dynaColor }}>
+                                <input
+                                    type="text"
+                                    style={{
+                                        width: '100%', border: 'none',
+                                        backgroundColor: dynaColor,
+                                    }}
+                                    onChange={e => this.memSet(i + offset, e.target.value)}
+                                    value={bytes[i + offset]}
+                                    disabled={i + offset + this.state.memDisplayStartAddr >= this.state.memory.length}
+                                /> </td>
+
+                        })}
                 </tr>
             );
         });
@@ -151,11 +157,13 @@ class MachineStateView extends React.Component {
                             <tbody>
                                 {this.state.registers.map((value, i) => {
                                     const isRip = this.machine.REGISTER_NAMES[i] === 'RIP';
+                                    const isRsp = this.machine.REGISTER_NAMES[i] === 'RSP';
+                                    const dynaColor = isRip ? STYLES.ripBgColor : (isRsp ? STYLES.rspBgColor : '');
                                     return <tr>
                                         <td style={{ backgroundColor: STYLES.tableHeaderColor }}>{this.machine.REGISTER_NAMES[i]}</td>
-                                        <td key={`mem-${i}`} style={{ backgroundColor: isRip ? STYLES.ripBgColor : '' }}>
+                                        <td key={`mem-${i}`} style={{ backgroundColor: dynaColor }}>
                                             <input type="text"
-                                                style={{ width: '100%', border: 'none', backgroundColor: isRip ? STYLES.ripBgColor : '' }}
+                                                style={{ width: '100%', border: 'none', backgroundColor: dynaColor }}
                                                 value={value}
                                                 onChange={e => this.regSet(i, e.target.value)} /></td>
                                     </tr>
@@ -165,30 +173,30 @@ class MachineStateView extends React.Component {
                         <Row>
                             <Col>
                                 <Button variant="light" onClick={() => this.run()}>Run</Button>
-                                <Button style={{marginLeft: '2px'}} variant="light" onClick={() => this.step()}>Step</Button>
+                                <Button style={{ marginLeft: '2px' }} variant="light" onClick={() => this.step()}>Step</Button>
                             </Col>
                         </Row>
                     </Col>
                     <Col md={9}>
                         <Col md={12}>
-                        <Row><Col style={{ marginBottom: '10px' }}><b>Memory</b></Col></Row>
-                        <Table bordered responsive size="sm">
-                            <tbody>
-                                {memTable}
-                            </tbody>
-                        </Table>
-                        <Row style={{ marginBottom: '5px', marginLeft: '5px' }}>
-                            <Button variant="light" onClick={() => this.memPrev()}> {'<'} </Button>
-                            <Button style={{marginLeft: '2px'}} variant="light" onClick={() => this.memNext()}> {'>'} </Button>
-                            <input type="text" style={{ border: 'solid 1px lightgray', marginLeft: '15px', paddingLeft: '10px' }} onChange={(e) => this.inspectAddr(e.target.value)} placeholder="Go to address" />
-                        </Row>
+                            <Row><Col style={{ marginBottom: '10px' }}><b>Memory</b></Col></Row>
+                            <Table bordered responsive size="sm">
+                                <tbody>
+                                    {memTable}
+                                </tbody>
+                            </Table>
+                            <Row style={{ marginBottom: '5px', marginLeft: '5px' }}>
+                                <Button variant="light" onClick={() => this.memPrev()}> {'<'} </Button>
+                                <Button style={{ marginLeft: '2px' }} variant="light" onClick={() => this.memNext()}> {'>'} </Button>
+                                <input type="text" style={{ border: 'solid 1px lightgray', marginLeft: '15px', paddingLeft: '10px' }} onChange={(e) => this.inspectAddr(e.target.value)} placeholder="Go to address" />
+                            </Row>
                         </Col>
                     </Col>
                 </Row>
 
-                <br/>
+                <br />
                 <hr />
-                <br/>
+                <br />
 
 
                 <Row style={{ textAlign: "center", marginTop: '10px' }}>
@@ -221,7 +229,7 @@ class MachineStateView extends React.Component {
                         <Row>
                             <Col sm={12} style={{ overflowY: 'scroll' }}>
                                 <h5>
-                                    { this.availableInstrs().map(instr => <><Badge pill variant="light">{instr.name}</Badge>{' '}</> )}
+                                    {this.availableInstrs().map(instr => <><Badge pill variant="light">{instr.name}</Badge>{' '}</>)}
                                 </h5>
                             </Col>
                         </Row>
