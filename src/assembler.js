@@ -45,8 +45,9 @@ function lex(source) {
     return tokens;
 }
 
-function assemble(tokens, machine) {
+function assemble(tokens, machine, out={}) {
     const code = [];
+    out.disasm = tokens.slice();
     const labels = {}; let labelNum = 1;
     let i = 0;
     while (i < tokens.length) {
@@ -56,18 +57,43 @@ function assemble(tokens, machine) {
             throw new Error("Parsing error. Expected op at index " + i.toString() + " but got " + opStr);
         }
         let opMeta = machine.OPCODES[op];
-        if (opMeta.name == "DATA") {
+        if (opMeta.name === "DATA") {
             const label = tokens[i+1];
             labels[label] = labelNum++;
             const length = parseInt(tokens[i+2]);
             i += length;
+        } else if (opMeta.name === "CHDATA") {
+            const label = tokens[i+1];
+            labels[label] = labelNum++;
+            const length = parseInt(tokens[i+2]);
+            const str = tokens[i+3].split('');  // TODO: Do we really need size here?? Can be implicit.
+            console.log(str)
+            for (let j = 0; j < length; j++) {
+                tokens.splice(i + j + 3, 0, str[j].charCodeAt(0));
+            }
+            tokens.splice(i + str.length + 3, 1);
+
+            // Keep original chars in disassembly
+            out.disasm = tokens.slice();
+            for (let j = 0; j < length; j++) {
+                out.disasm[i + j + 3] = str[j];
+            }
+            console.log(tokens)
+            i += length;
         } else if (opMeta.name == "LABEL") {
             const label = tokens[i+1];
             labels[label] = labelNum++;
+        } else if (opMeta.name === "AOL") {
+            const labelNum = labels[tokens[i+1]];
+            if (labelNum === undefined) {
+                throw new Error('Usage of undefined label: ' + tokens[i+2].toString());
+            }
+            tokens[i+1] = labelNum;
         }
         i += opMeta.args + 1;
     }
     i = 0;
+    console.log(tokens);
     console.log(labels)
 
     while (i < tokens.length) {
@@ -133,10 +159,11 @@ function memLoadWillOverwrite(memory , addr, contents) {
 
 const Assemble = function(machine, source, loadAtAddr=0) {
     const tokens = lex(source);
-    const asm = assemble(tokens, machine);
+    let out = {};
+    const asm = assemble(tokens, machine, out);
     memLoad(machine.memory, loadAtAddr, asm);
-    return tokens;
-};
+    return out.disasm;
+ };
 
 module.exports = Assemble;
 

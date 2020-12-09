@@ -50,6 +50,9 @@ const OPCODES = {
   26: { name: 'POP', args: 1 },
   27: { name: 'CALL', args: 1 },
   28: { name: 'RET', args: 0 },
+  29: { name: 'CHDATA', args: 2, varLen: true },
+  30: { name: 'STORE', args: 2 },
+  31: { name: 'AOL', args: 2},
 };
 
 const OPS = {
@@ -82,6 +85,9 @@ const OPS = {
   POP : 26,
   CALL : 27,
   RET : 28,
+  CHDATA : 29,
+  STORE : 30,
+  AOL : 31,
 };
 
 const
@@ -113,7 +119,10 @@ const
     PUSH = 25,
     POP = 26,
     CALL = 27,
-    RET = 28;
+    RET = 28,
+    CHDATA = 29,
+    STORE = 30,
+    AOL = 31;
 
 const numArgs = [];
 Object.keys(OPCODES).forEach(k => numArgs.push(OPCODES[k].args));
@@ -188,7 +197,7 @@ function _execute(memory, registers, codeStart, codeEnd, oneStep, print) {
     if (opCode === LABEL) {
       _labels[ memory[currInstr + 1] ] = currInstr + numArgs[opCode] + 1;
       currInstr += numArgs[opCode] + 1;
-    } else if (opCode === DATA) {
+    } else if (opCode === DATA || opCode === CHDATA) {
       const label =  memory[currInstr + 1]; 
       _statics[ label ] = currInstr  + 2; // label points to the size byte
       currInstr +=  1 + 2 + memory[ _statics[label] ] ;
@@ -222,6 +231,14 @@ function _execute(memory, registers, codeStart, codeEnd, oneStep, print) {
         registers[memory[rip + 1]] += memory[rip + 2];
         registers[RIP] += numArgs[memory[rip]] + 1;
         break;
+      case SUB: // lhs <- lhs - rhs (two registers)
+        registers[memory[rip + 1]] -= registers[memory[rip + 2]];
+        registers[RIP] += numArgs[memory[rip]] + 1;
+        break;
+      case SUBI:
+        registers[memory[rip + 1]] -= memory[rip + 2];
+        registers[RIP] += numArgs[memory[rip]] + 1;
+        break;
       case SET:
         registers[memory[rip + 1]] = registers[memory[rip + 2]];
         registers[RIP] += numArgs[memory[rip]] + 1;
@@ -240,6 +257,15 @@ function _execute(memory, registers, codeStart, codeEnd, oneStep, print) {
         // noop
        registers[RIP] += 2;
        break;
+      case JMPEQ:
+        lhs = registers[memory[rip + 1]];
+        rhs = registers[memory[rip + 2]];
+        if (lhs === rhs) {
+          registers[RIP] = memory[rip + 3];
+        } else {
+        registers[RIP] += numArgs[memory[rip]] + 1;
+        }
+        break;
       case JMPEQI:
         lhs = registers[memory[rip + 1]];
         rhs = memory[rip + 2];
@@ -294,6 +320,15 @@ function _execute(memory, registers, codeStart, codeEnd, oneStep, print) {
           registers[RIP] += numArgs[memory[rip]] + 1;
         }
        break;
+      case AOL:  // AOL label register
+        // Puts the address of label label in register
+        const addr = _statics[memory[rip + 1]];
+        if (addr === undefined) {
+          addr = _labels[memory[rip + 1]];
+        } // TODO: labels and statics can be one case
+        registers[memory[rip + 2]] = addr;
+        registers[RIP] += numArgs[memory[rip]] + 1;
+        break;
       case JMPEQL:
         lhs = registers[memory[rip + 1]];
         rhs = registers[ memory[rip + 2] ];
@@ -313,6 +348,7 @@ function _execute(memory, registers, codeStart, codeEnd, oneStep, print) {
         registers[RIP] += numArgs[memory[rip]] + 1;
         break;
       case DATA:
+      case CHDATA:
         // Noop
         const label =  memory[rip + 1]; 
         registers[RIP] +=  2 + memory[ _statics[label] ]  +  1 ; // label, size, num of chars, +1 offset
@@ -322,12 +358,18 @@ function _execute(memory, registers, codeStart, codeEnd, oneStep, print) {
         console.log(`Load ${memory[registers[memory[rip+2]]]} into R${memory[rip+1]}`);
         registers[RIP] += numArgs[memory[rip]] + 1;
         break;
+      case STORE: // Store value of first arg (reg) into memory pointed to by second ard
+        memory[registers[memory[rip+2]]] = registers[memory[rip+1]];
+        registers[RIP] += numArgs[memory[rip]] + 1;
+        break;
       case PUSH:
         memory[registers[RSP]++] = registers[memory[rip+1]];
         registers[RIP] += numArgs[memory[rip]] + 1;
         break;
       case POP:
-        registers[memory[rip+1]] = memory[--registers[RSP]];
+        const topOfStack = registers[RSP] - 1;
+        registers[memory[rip+1]] = memory[topOfStack];
+        registers[RSP] = topOfStack;
         registers[RIP] += numArgs[memory[rip]] + 1;
         break;
       case CALL:

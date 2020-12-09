@@ -71,3 +71,236 @@ PRINT R1
 SETI R1 3
 PRINT R1
 RET
+
+# Parses 'num + num' expression and prints result
+DATA expr 3 49 43 49
+
+LABEL MAIN
+    SETI R0 2
+    LOAD R0 R0
+    PUSH R0
+
+    CALL ISNUM
+    POP R1
+    PRINT R1
+    JMPEQI R1 0 mnotnum
+    HALT
+    LABEL mnotnum
+    PUSH R0
+
+    CALL ISPLUS
+    POP R1
+    JMPEQI R1 1 parserhs
+    HALT
+
+    LABEL parserhs
+    CALL ISNUM
+    POP R1
+    PRINT R1
+
+
+LABEL ISPLUS
+    POP R0
+    POP R1      # maybe +
+    JMPEQI R1 43 isplus
+    SETI R1 0
+    JMPL isplusret
+    LABEL isplus
+        SETI R1 1
+    LABEL isplusret
+        PUSH R1
+        PUSH R0
+        RET
+
+LABEL ISNUM
+    POP R0 # return addr, restore before calling ret
+    POP R1
+    SETI R2 48
+    JMPLT R1 R2 notnum 
+    SETI R2 57
+    JMPGT R1 R2 notnum
+    SETI R1 1
+    PUSH R1
+    PUSH R0
+    RET
+    LABEL notnum
+        SETI R1 0
+        PUSH R1
+        PUSH R0
+        RET
+
+LABEL PARSENUM
+    POP R0 # RA
+    POP R1
+    SUB R1 48
+    PUSH R1
+    PUSH R0 # RA
+    RET
+
+
+# Parses 'num + num' expression and prints result
+DATA expr 3 49 43 49
+
+LABEL MAIN
+    SETI R0 3
+    LOAD R0 R0
+    PUSH R0
+    CALL PARSENUM
+    POP R0
+    PRINT R0
+    HALT
+
+LABEL PARSENUM
+    POP R0 # RA
+    POP R1
+    SUBI R1 48
+    PUSH R1
+    PUSH R0 # RA
+    RET
+
+
+########
+# Parses 'num + num' expression and prints result
+DATA expr 3 55 56 55
+
+LABEL MAIN
+    SETI R0 3
+
+    LOAD R1 R0
+    PUSH R0  # Preserve R0
+    PUSH R1
+    CALL PARSENUM
+    POP R1
+    POP R0   # Preserve R0
+    ADDI R0 1
+    PUSH R0  # Preserve R0
+    
+    LOAD R1 R0
+    PUSH R1
+    CALL PARSENUM
+    POP R1
+    POP R0
+    
+    PRINT R1
+    HALT
+
+LABEL PARSENUM
+    POP R0 # RA
+    POP R1
+    SUBI R1 48
+    PUSH R1
+    PUSH R0 # RA
+    RET
+
+6+7
+
+
+Three - every identifer must be three chars long and unique
+=====
+
+L2R - left to write language
+============================
+
+age = 10
+in4 = + age in4
+
+cnt = 0
+for cnt < age:
+
+print(+ age 4)
+
+
+LABEL PARSEEXPR:
+
+    CALL PARSEADD
+
+    IF SUCC RETURN
+
+    CALL PARSENUM
+
+    IF NOT MAC RETURN NUM
+
+    CALL PARSEREG
+
+    IF NOT MAX RETURN TOTAL
+
+LABEL PARSEADD
+    # lhs
+    CALL PARSEEXPR
+
+    # check if +
+    CALL PARSEPLUS
+    # if not return max
+
+    # rhs
+    CALL PARSEEXPR
+
+CHDATA src 5 1+2-3 
+
+# prints the 1 in the string
+
+CHDATA src 5 1+2-3 
+
+AOL src R0 # R0 has address of label
+ADDI R0 1
+PUSH R0 # preserve reg
+LOAD R1 R0
+PUSH R1
+CALL PARSENUM
+POP R1 # Result
+PRINT R1
+POP R0 # Restore R0
+HALT
+
+LABEL PARSENUM
+    POP R0 # RA
+    POP R1
+    SUBI R1 48
+    PUSH R1
+    PUSH R0 # RA
+    RET 
+
+
+
+
+
+
+
+
+# Prints all chars in this string
+CHDATA src 5 1+2-3 
+
+AOL src R0 # R0 has address of label
+
+LOAD R1 R0  # the target
+SETI R2 0   # loop counter
+
+LABEL loop
+ADDI R0 1
+PUSH R0 # preserve regs
+PUSH R1
+PUSH R2
+LOAD R3 R0
+PUSH R3
+CALL PARSENUM
+POP R3 # Result
+PRINT R3
+
+POP R2
+POP R1
+POP R0 # Restore R0
+
+# Increment loop
+ADDI R2 1
+JMPGT R1 R2 loop
+
+LABEL done
+HALT
+
+LABEL PARSENUM
+    POP R0 # RA
+    POP R1
+    SUBI R1 48
+    PUSH R1
+    PUSH R0 # RA
+    RET 
