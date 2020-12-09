@@ -55,6 +55,10 @@ const OPCODES = {
   31: { name: 'AOL', args: 2 , desc: 'Args: <Label> <Register>  -  Address-of-label instruction. Sets Register to address Label refers to' },
   32: { name: 'STORI', args: 2 , desc: 'Args: <Reg> <Immediate>  -  Stores Immediate value at address held in Reg' },
   33: { name: 'JMPNEQIL', args: 3 , desc: 'Args: <Reg> <Immediate> <Label>  -  If value of Reg does not equal Immediate, jump to Label' },
+  34: { name: 'MUL', args: 2 , desc: 'Args: <Reg1> <Reg2>  -  Sets Reg1 to Reg1 * Reg2' },
+  35: { name: 'MULI', args: 2 , desc: 'Args: <Reg> <Immediate>  -  Sets Reg to Reg * Immediate' },
+  36: { name: 'DIV', args: 2 , desc: 'Args: <Reg1> <Reg2>  -  Sets Reg1 to Reg1 / Reg2'  },
+  37: { name: 'DIVI', args: 2 , desc: 'Args: <Reg> <Immediate>  -  Sets Reg to Reg / Immediate' },
 
 };
 
@@ -93,6 +97,10 @@ const OPS = {
   AOL : 31,
   STORI : 32,
   JMPNEQIL: 33,
+  MUL : 34,
+  MULI : 35, 
+  DIV : 36,
+  DIVI : 37
 };
 
 const
@@ -129,7 +137,11 @@ const
     STORE = 30,
     AOL = 31,
     STORI = 32, 
-    JMPNEQIL = 33;
+    JMPNEQIL = 33,
+    MUL = 34,
+    MULI = 35, 
+    DIV = 36,
+    DIVI = 37;
 
 const numArgs = [];
 Object.keys(OPCODES).forEach(k => numArgs.push(OPCODES[k].args));
@@ -238,12 +250,32 @@ function _execute(memory, registers, codeStart, codeEnd, oneStep, print) {
         registers[memory[rip + 1]] += memory[rip + 2];
         registers[RIP] += numArgs[memory[rip]] + 1;
         break;
-      case SUB: // lhs <- lhs - rhs (two registers)
+      case SUB: 
         registers[memory[rip + 1]] -= registers[memory[rip + 2]];
         registers[RIP] += numArgs[memory[rip]] + 1;
         break;
       case SUBI:
         registers[memory[rip + 1]] -= memory[rip + 2];
+        registers[RIP] += numArgs[memory[rip]] + 1;
+        break;
+      case MUL: 
+        registers[memory[rip + 1]] *= registers[memory[rip + 2]];
+        registers[RIP] += numArgs[memory[rip]] + 1;
+        break;
+      case MULI:
+        registers[memory[rip + 1]] *= memory[rip + 2];
+        registers[RIP] += numArgs[memory[rip]] + 1;
+        break;
+      case DIV: 
+        rhs = registers[memory[rip + 2]];
+        if (rhs === 0) { alert('SIGFPE - division by 0'); return; }
+        registers[memory[rip + 1]] = Math.floor(registers[memory[rip + 1]] / rhs);
+        registers[RIP] += numArgs[memory[rip]] + 1;
+        break;
+      case DIVI:
+        rhs = memory[rip + 2];
+        if (rhs === 0) { alert('SIGFPE - division by 0'); return; }
+        registers[memory[rip + 1]] = Math.floor(registers[memory[rip + 1]] / rhs);
         registers[RIP] += numArgs[memory[rip]] + 1;
         break;
       case SET:
