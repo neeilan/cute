@@ -38,6 +38,7 @@ class MachineStateView extends React.Component {
             loadAddr: 0,
             disasmTokens: [],
             disasmIsFresh: false,
+            docInstr: -1,
         };
 
     }
@@ -115,8 +116,8 @@ class MachineStateView extends React.Component {
 
     availableInstrs() {
         const instrs = [];
-        for (const [name, code] of Object.entries(this.machine.OPS)) {
-            instrs.push({ name: name, opCode: code });
+        for (const [code, meta] of Object.entries(this.machine.OPCODES)) {
+            instrs.push({ name: meta.name, opCode: code, desc: meta.desc });
         }
         return instrs;
     }
@@ -211,17 +212,14 @@ class MachineStateView extends React.Component {
                     </Col>
                 </Row>
 
-                <br />
                 <hr />
-                <br />
-
 
                 <Row style={{ textAlign: "center", marginTop: '10px' }}>
                     <Col sm={6}>
                         <Row><Col style={{ marginBottom: '10px' }}><b>Assembler</b></Col></Row>
                         <Row>
                             <textarea placeholder="Assembly Editor"
-                                style={{ width: '100%', height: '100%', minHeight: '100px', paddingLeft: '10px', borderColor: 'lightgray' }}
+                                style={{ width: '100%', height: '100%', minHeight: '220px', paddingLeft: '10px', borderColor: 'lightgray' }}
                                 value={this.state.asmArea}
                                 onChange={e => this.asmAreaEdit(e.target.value)} />
                         </Row>
@@ -246,8 +244,10 @@ class MachineStateView extends React.Component {
                         <Row>
                             <Col sm={12} style={{ overflowY: 'scroll' }}>
                                 <h5>
-                                    {this.availableInstrs().map(instr => <><Badge pill variant="light">{instr.name}</Badge>{' '}</>)}
+                                    {this.availableInstrs().map((instr, i) => <a onClick={()=>this.setState({docInstr: i})}><Badge pill variant={this.state.docInstr === i ? 'primary' : 'light'}>{instr.name}</Badge>{' '}</a>)}
                                 </h5>
+                                <br/>
+                                { this.state.docInstr === -1 ? '' : this.availableInstrs()[this.state.docInstr].desc}
                             </Col>
                         </Row>
                     </Col>

@@ -21,38 +21,41 @@ const REGISTER_NUMS = {
 };
 
 const OPCODES = {
-  0: { name: 'HALT', args: 0 },
-  1: { name: 'ADD', args: 2 },
-  2: { name: 'ADDI', args: 2 },
-  3: { name: 'SUB', args: 2 },
-  4: { name: 'SUBI', args: 2 },
-  5: { name: 'ASSERT', args: 1 },
-  6: { name: 'LABEL', args: 1 },
-  7: { name: 'JMPL', args: 1 },
-  8: { name: 'JMPGT', args: 3 },
-  9: { name: 'JMPGTE', args: 3 },
-  10: { name: 'JMPEQ', args: 2 },
-  11: { name: 'PRINT', args: 1 },
-  12: { name: 'SETI', args: 2 },
-  13: { name: 'JMPI', args: 1 },
-  14: { name: 'JMPEQI', args: 3 },
-  15: { name: 'JMPEQIL', args: 3 },
-  16: { name: 'PRINTBYTE', args: 1 },
-  17: { name: 'DATA', args: 2, varLen: true },
-  18: { name: 'PRINTSTRL', args: 1 },
-  19: { name: 'PRINTBYTEI', args: 1 },
-  20: { name: 'JMPEQL', args: 3 },
-  21: { name: 'SET', args: 2 },
-  22: { name: 'JMPLT', args: 3 },
-  23: { name: 'JMPLTE', args: 3 },
-  24: { name: 'LOAD', args: 2 }, // Load Ra Rb - load memory at Rb to Ra
-  25: { name: 'PUSH', args: 1 },
-  26: { name: 'POP', args: 1 },
-  27: { name: 'CALL', args: 1 },
-  28: { name: 'RET', args: 0 },
-  29: { name: 'CHDATA', args: 2, varLen: true },
-  30: { name: 'STORE', args: 2 },
-  31: { name: 'AOL', args: 2},
+  0: { name: 'HALT', args: 0, desc: 'Args: none  -  Stops execution of the program here. Does not advance IP' },
+  1: { name: 'ADD', args: 2 , desc: 'Args: <Reg1> <Reg2>  -  Sets Reg1 to Reg1 + Reg2' },
+  2: { name: 'ADDI', args: 2 , desc: 'Args: <Reg> <Immediate>  -  Sets Reg to Reg + Immediate' },
+  3: { name: 'SUB', args: 2 , desc: 'Args: <Reg1> <Reg2>  -  Sets Reg1 to Reg1 - Reg2'  },
+  4: { name: 'SUBI', args: 2 , desc: 'Args: <Reg> <Immediate>  -  Sets Reg to Reg - Immediate' },
+  5: { name: 'ASSERT', args: 1 , desc: '' },
+  6: { name: 'LABEL', args: 1 , desc: 'Args: <name>  -  Creates a label with gives name, pointing to next instruction' },
+  7: { name: 'JMPL', args: 1 , desc: '' },
+  8: { name: 'JMPGT', args: 3 , desc: '' },
+  9: { name: 'JMPGTE', args: 3 , desc: '' },
+  10: { name: 'JMPEQ', args: 2 , desc: '' },
+  11: { name: 'PRINT', args: 1 , desc: '' },
+  12: { name: 'SETI', args: 2 , desc: 'Args: <Reg> <Immediate>  -  Sets Reg to Immediate' },
+  13: { name: 'JMPI', args: 1 , desc: '' },
+  14: { name: 'JMPEQI', args: 3 , desc: '' },
+  15: { name: 'JMPEQIL', args: 3 , desc: 'Args: <Reg> <Immediate> <Label>  -  If value of Reg equals Immediate, jump to Label' },
+  16: { name: 'PRINTBYTE', args: 1 , desc: '' },
+  17: { name: 'DATA', args: 2, varLen: true , desc: '' },
+  18: { name: 'PRINTSTRL', args: 1 , desc: '' },
+  19: { name: 'PRINTBYTEI', args: 1 , desc: '' },
+  20: { name: 'JMPEQL', args: 3 , desc: '' },
+  21: { name: 'SET', args: 2 , desc: 'Args: <Reg1> <Reg2>  -  Sets value Reg1 to the value of Reg2' },
+  22: { name: 'JMPLT', args: 3 , desc: '' },
+  23: { name: 'JMPLTE', args: 3 , desc: '' },
+  24: { name: 'LOAD', args: 2 , desc: 'Args: <Reg1> <Reg2> - Load byte at address held in Reg2 into Reg1' },
+  25: { name: 'PUSH', args: 1 , desc: 'Args: <Reg> - Pushes the value of Reg to the top of the stack (RSP) and increments RSP' },
+  26: { name: 'POP', args: 1 , desc: 'Args: <Reg>  - Places the value on top of the stack (RSP-1) into Reg and decrements RSP' },
+  27: { name: 'CALL', args: 1 , desc: 'Args: <Label>  -  Pushes RRA onto the stack, sets RRA to next instruction, and jumps to Label' },
+  28: { name: 'RET', args: 0 , desc: 'Args: None  -  Returns control to the instruction at address RRA. Restores RRA to previous RRA value, which is expected to be on top of the stack (RSP-1)' },
+  29: { name: 'CHDATA', args: 2, varLen: true , desc: '' },
+  30: { name: 'STORE', args: 2 , desc: 'Args: <Reg1> <Reg2>  -  Stores value of Reg1 at address held in Reg2' },
+  31: { name: 'AOL', args: 2 , desc: 'Args: <Label> <Register>  -  Address-of-label instruction. Sets Register to address Label refers to' },
+  32: { name: 'STORI', args: 2 , desc: 'Args: <Reg> <Immediate>  -  Stores Immediate value at address held in Reg' },
+  33: { name: 'JMPNEQIL', args: 3 , desc: 'Args: <Reg> <Immediate> <Label>  -  If value of Reg does not equal Immediate, jump to Label' },
+
 };
 
 const OPS = {
@@ -88,6 +91,8 @@ const OPS = {
   CHDATA : 29,
   STORE : 30,
   AOL : 31,
+  STORI : 32,
+  JMPNEQIL: 33,
 };
 
 const
@@ -122,7 +127,9 @@ const
     RET = 28,
     CHDATA = 29,
     STORE = 30,
-    AOL = 31;
+    AOL = 31,
+    STORI = 32, 
+    JMPNEQIL = 33;
 
 const numArgs = [];
 Object.keys(OPCODES).forEach(k => numArgs.push(OPCODES[k].args));
@@ -312,9 +319,11 @@ function _execute(memory, registers, codeStart, codeEnd, oneStep, print) {
         }
        break;
       case JMPEQIL:
+      case JMPNEQIL:
         lhs = registers[memory[rip + 1]];
         rhs = memory[rip + 2];
-        if (lhs === rhs) {
+        let truthy = memory[rip] === JMPEQIL ? lhs === rhs : lhs !== rhs;
+        if (truthy) {
           registers[RIP] = _labels[memory[rip + 3]];
         } else {
           registers[RIP] += numArgs[memory[rip]] + 1;
@@ -360,6 +369,10 @@ function _execute(memory, registers, codeStart, codeEnd, oneStep, print) {
         break;
       case STORE: // Store value of first arg (reg) into memory pointed to by second ard
         memory[registers[memory[rip+2]]] = registers[memory[rip+1]];
+        registers[RIP] += numArgs[memory[rip]] + 1;
+        break;
+      case STORI: // Store value of first arg (reg) into memory pointed to by second ard
+        memory[registers[memory[rip+2]]] = memory[rip+1];
         registers[RIP] += numArgs[memory[rip]] + 1;
         break;
       case PUSH:
