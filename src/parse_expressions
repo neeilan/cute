@@ -1,6 +1,7 @@
-# This program adds two numbers given as a string
+# This program evaluates an expression `src`
+# Where expr -> expr + expr | expr - expr | number
 
-CHDATA src 7 7+4+8-4
+CHDATA src 7 7+4+8+4
 DATA result 1 0
 
 
@@ -27,7 +28,7 @@ LABEL EXPR
     POP R0
     ADDI R1 1    # Increment R0, should be pointing to plus
     LOAD R3 R1   # R1 is now a +
-    JMPNEQIL R3 43 pmaybesub
+    JMPNEQIL R3 43 pndone
 
     ADDI R1 1     # Point to num
     PUSH R0
@@ -41,21 +42,6 @@ LABEL EXPR
     PUSH R2
     JMPL pdone
     
-    LABEL pmaybesub
-    JMPNEQIL R3 45 pndone
-
-    ADDI R1 1     # Point to num
-    PUSH R0
-    PUSH R2  # Preserve
-    PUSH R1
-    CALL EXPR
-    POP R1
-    POP R2   # Restore
-    POP R0
-    SUB R2 R1
-    PUSH R2
-    JMPL pdone
-
     LABEL pndone
     PUSH R2  # Just return the number
     LABEL pdone
