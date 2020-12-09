@@ -1,0 +1,81 @@
+# This program evaluates an arbitary nm+nm-num string!
+
+CHDATA src 5 7+2-3
+DATA result 1 0
+
+
+AOL src R0  # R0 has address of src
+ADDI R0 1    # next char, so pointing at first char
+PUSH R0
+CALL NUMPNMN
+POP R0
+PRINT R0
+HALT
+
+LABEL NUMPNMN
+    POP R0 # RA
+
+    POP R1      # R0 is address to start at
+    PUSH R0
+    PUSH R1     # Preserve
+    PUSH R1      # Arg
+    CALL NUMPLUSNUM
+    POP R2      # Value of _ + _
+    POP R1      # Restore to start addr
+    POP R0
+    ADDI R1 4   # Assume minus
+    LOAD R1 R1
+    PUSH R2
+    PUSH R1
+    CALL PARSENUM
+    POP R1
+    POP R2
+    SUB R2 R1    # _ + _ - _
+
+    PUSH R2
+    PUSH R0 # RA
+    RET
+
+LABEL NUMPLUSNUM
+    POP R0 # RA
+
+    POP R1      # R0 is address to start at
+    LOAD R2 R1  # R1 is char to parse
+    PUSH R0
+    PUSH R1     # Preserve
+    PUSH R2
+    CALL PARSENUM
+    POP R2      # R1 is now a number
+    POP R1      # Unfreeze
+    POP R0
+    ADDI R1 1    # Increment R0, should be pointing to plus
+    LOAD R3 R1   # R1 is now a +
+    JMPNEQIL R3 43 pndone
+
+    ADDI R1 1     # Point to num
+    LOAD R1 R1 
+    PUSH R0
+    PUSH R2  # Preserve
+    PUSH R1
+    CALL PARSENUM
+    POP R1
+    POP R2   # Restore
+    POP R0
+    ADD R2 R1
+    PUSH R2
+    JMPL pdone
+    
+    LABEL pndone
+    SETI R2 -1
+    PUSH R2
+    LABEL pdone
+    PUSH R0 # RA
+    RET
+
+LABEL PARSENUM
+    POP R0 # RA
+    POP R1
+    SUBI R1 48
+    PUSH R1
+    PUSH R0 # RA
+    RET 
