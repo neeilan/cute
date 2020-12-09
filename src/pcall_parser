@@ -1,0 +1,41 @@
+# Evaluates an addition string.
+# Uses preserved calling convention for cleanliness, and because these functions use most registers anyway.
+
+CHDATA src 7 7+4+8+1
+
+AOL src R0  # R0 has address of src
+ADDI R0 1   # next char, so pointing at first char
+PUSH R0
+PCALL EXPR
+POP R0
+PRINT R0
+HALT
+
+LABEL EXPR
+    POP R1      # R1 is address to start at
+    LOAD R2 R1  # R2 is char to parse
+    PUSH R2
+    PCALL PARSENUM
+    POP R2      # R2 is parsed LHS
+
+    ADDI R1 1    # R1 is *OP
+    LOAD R3 R1   # R4 is the OP
+
+    JMPNEQIL R3 43 done
+    ADDI R1 1
+    PUSH R1
+    PCALL EXPR
+    POP R1
+    ADD R2 R1
+
+    LABEL done
+    PUSH R2
+    PRET   
+
+    
+
+LABEL PARSENUM
+    POP R1
+    SUBI R1 48
+    PUSH R1
+    PRET

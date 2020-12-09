@@ -1,0 +1,113 @@
+# This program adds two numbers given as a string
+
+CHDATA src 9 1*2*2*3*5
+DATA result 1 0
+
+
+AOL src R0  # R0 has address of src
+ADDI R0 1    # next char, so pointing at first char
+PUSH R0
+CALL EXPR
+POP R0
+PRINT R0
+
+HALT
+
+LABEL EXPR
+    POP R0      # RA
+
+    POP R1      # R1 is address to start at
+    LOAD R2 R1  # R2 is char to parse
+    PUSH R0     # Preserve
+    PUSH R1     # Preserve
+    PUSH R2     
+    CALL PARSENUM
+    POP R2      # R2 is now LHS
+    POP R1      # Restore
+    POP R0      # Restore
+
+    # R1: addr of LHS, R2: val of LHS, R0: RA
+
+    ADDI R1 1 
+    LOAD R3 R1   
+
+    # R1: addr of OP, R2: val of LHS, R3: val of OP, R0: RA
+
+    LABEL parserhs    # R2:accumulator, R3:op value, R1:op pointer
+    JMPNEQIL R3 42 pmaybeadd   
+
+    # We know it's multiplication
+    
+    ADDI R1 1
+
+    # R1: addr of RHS, R2: val of LHS, R3: val of OP, R0: RA
+
+    PUSH R0  # Preserve
+    PUSH R2  # Preserve
+    PUSH R1  # Preserve
+    LOAD R3 R1
+    PUSH R3
+    CALL PARSENUM
+    POP R3         # R3 is parsed number
+
+    POP R1   # Restore   
+    POP R2   # Restore
+    POP R0   # Restore
+
+    # R1: addr of RHS, R2: val of LHS, R3: val of RHS, R0: RA
+ 
+    MUL R2 R3
+
+
+    ADDI R1 1
+    LOAD R3 R1
+    JMPEQIL R3 42 parserhs
+    JMPEQIL R3 43 parserhs
+    JMPEQIL R3 45 parserhs
+
+    PUSH R2
+    JMPL pdone
+
+    LABEL pmaybeadd
+    JMPNEQIL R3 43 pmaybesub
+
+    ADDI R1 1     # Point to num
+    PUSH R0
+    PUSH R2  # Preserve
+    PUSH R1
+    CALL EXPR
+    POP R1
+    POP R2   # Restore
+    POP R0
+    ADD R2 R1
+    PUSH R2
+    JMPL pdone
+    
+    LABEL pmaybesub
+    JMPNEQIL R3 45 pndone
+
+    ADDI R1 1     # Point to num
+    PUSH R0
+    PUSH R2  # Preserve
+    PUSH R1
+    CALL EXPR
+    POP R1
+    POP R2   # Restore
+    POP R0
+    SUB R2 R1
+    PUSH R2
+    JMPL pdone
+
+    LABEL pndone
+    PUSH R2  # Just return the number
+    LABEL pdone
+    PUSH R0 # RA
+    RET
+
+LABEL PARSENUM
+    POP R0 # RA
+    POP R1
+    SUBI R1 48
+    PUSH R1
+    PUSH R0 # RA
+    RET 
