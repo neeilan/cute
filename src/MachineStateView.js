@@ -195,7 +195,7 @@ class MachineStateView extends React.Component {
                             </Col>
                         </Row>
                     </Col>
-                    <Col md={9}>
+                    <Col md={10}>
                         <Col md={12}>
                             <Row><Col style={{ marginBottom: '10px' }}><b>Memory</b></Col></Row>
                             <Table bordered responsive size="sm">
