@@ -20,6 +20,7 @@ const STYLES = {
     ripColor: 'black',
     tableHeaderColor: 'ivory',
     rspBgColor: 'Lavender',
+    rbpBgColor: 'red',
 };
 
 class MachineStateView extends React.Component {
@@ -90,6 +91,7 @@ class MachineStateView extends React.Component {
         try {
             tokens = Assemble(this.machine, this.state.asmArea, this.state.loadAddr);
             this.machine.registers[this.machine.REGISTER_NUMS['RSP']] = (this.state.loadAddr || 0) + tokens.length + 1;
+            this.machine.registers[this.machine.REGISTER_NUMS['RBP']] = this.machine.registers[this.machine.REGISTER_NUMS['RSP']];
             console.log(this.state.registers)
             this.setState({ registers: this.machine.registers, memory: this.machine.memory, disasmTokens: tokens, disasmIsFresh: true });
 
@@ -128,6 +130,7 @@ class MachineStateView extends React.Component {
         const memTable = [];
         const ripValueAdj = this.state.registers[this.machine.REGISTER_NUMS.RIP] - this.state.memDisplayStartAddr;
         const rspValueAdj = this.state.registers[this.machine.REGISTER_NUMS.RSP] - this.state.memDisplayStartAddr;
+        const rbpValueAdj = this.state.registers[this.machine.REGISTER_NUMS.RBP] - this.state.memDisplayStartAddr;
         bytes.forEach((_, i) => {
             if (i % this.numBytesPerRow !== 0) return;
             let cols = [];
@@ -140,7 +143,8 @@ class MachineStateView extends React.Component {
                             const addr = i + offset;
                             const isRip = ripValueAdj === addr;
                             const isRsp = rspValueAdj === addr;
-                            const dynaColor = isRip ? STYLES.ripBgColor : (isRsp ? STYLES.rspBgColor : '');
+                            const isRbp = rbpValueAdj === addr;
+                            const dynaColor = isRip ? STYLES.ripBgColor : (isRsp ? STYLES.rspBgColor : (isRbp ? STYLES.rbpBgColor : ''));
                             const absoluteAddr = addr + this.state.memDisplayStartAddr;
                             const disasmAvailable = this.state.disasmIsFresh
                                 && absoluteAddr >= this.state.loadAddr
@@ -176,7 +180,8 @@ class MachineStateView extends React.Component {
                                 {this.state.registers.map((value, i) => {
                                     const isRip = this.machine.REGISTER_NAMES[i] === 'RIP';
                                     const isRsp = this.machine.REGISTER_NAMES[i] === 'RSP';
-                                    const dynaColor = isRip ? STYLES.ripBgColor : (isRsp ? STYLES.rspBgColor : '');
+                                    const isRbp = this.machine.REGISTER_NAMES[i] === 'RBP';
+                                    const dynaColor = isRip ? STYLES.ripBgColor : (isRsp ? STYLES.rspBgColor : (isRbp ? STYLES.rbpBgColor : ''));
                                     return <tr>
                                         <td style={{ backgroundColor: STYLES.tableHeaderColor }}>{this.machine.REGISTER_NAMES[i]}</td>
                                         <td key={`mem-${i}`} style={{ backgroundColor: dynaColor }}>

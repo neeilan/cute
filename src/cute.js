@@ -5,8 +5,9 @@ const REGISTER_NAMES = {
   3 : 'R3',
   4 : 'R4',
   5 : 'RRA',
-  6 : 'RSP',
-  7 : 'RIP',
+  6 : 'RBP',
+  7 : 'RSP',
+  8 : 'RIP',
 };
 
 const REGISTER_NUMS = {
@@ -16,8 +17,9 @@ const REGISTER_NUMS = {
   'R3' : 3,
   'R4' : 4,
   'RRA': 5,
-  'RSP' : 6,
-  'RIP' : 7,
+  'RBP' : 6,
+  'RSP' : 7,
+  'RIP' : 8,
 };
 
 const OPCODES = {
@@ -59,6 +61,9 @@ const OPCODES = {
   35: { name: 'MULI', args: 2 , desc: 'Args: <Reg> <Immediate>  -  Sets Reg to Reg * Immediate' },
   36: { name: 'DIV', args: 2 , desc: 'Args: <Reg1> <Reg2>  -  Sets Reg1 to Reg1 / Reg2'  },
   37: { name: 'DIVI', args: 2 , desc: 'Args: <Reg> <Immediate>  -  Sets Reg to Reg / Immediate' },
+  38: { name: 'PCALL', args: 1 , desc: 'Preserved call' },
+  39: { name: 'PRET', args: 0 , desc: 'Preserved ret' },
+
 
 };
 
@@ -100,7 +105,9 @@ const OPS = {
   MUL : 34,
   MULI : 35, 
   DIV : 36,
-  DIVI : 37
+  DIVI : 37,
+  PCALL : 38,
+  PRET : 39,
 };
 
 const
@@ -141,13 +148,15 @@ const
     MUL = 34,
     MULI = 35, 
     DIV = 36,
-    DIVI = 37;
+    DIVI = 37,
+    PCALL = 38,
+    PRET = 39;
 
 const numArgs = [];
 Object.keys(OPCODES).forEach(k => numArgs.push(OPCODES[k].args));
 
-const registers = [0, 0, 0, 0, 0, 0, 0];
-const R0 = 0, R1 = 1, R2=2, R3=3, R4=4, RRA=5, RSP=6, RIP=7;
+const registers = [0, 0, 0, 0, 0, 0, 0, 0];
+const R0 = 0, R1 = 1, R2=2, R3=3, R4=4, RRA=5, RBP= 6, RSP=7, RIP=8;
 
 
 let memory = [
@@ -431,6 +440,61 @@ function _execute(memory, registers, codeStart, codeEnd, oneStep, print) {
         registers[RRA] = memory[--registers[RSP]];
         registers[RIP] = ra;
         break;
+      case PCALL:
+        // Write addr of next instruction to RIP - we'll preserve this
+        registers[RIP] = registers[RIP] + numArgs[memory[rip]] + 1;
+        const registerStateAtCallTime = [...registers];
+
+        // Everything between [RBP and RSP) is an arg
+        let pcall_args = [];
+        for (let i = registers[RBP]; i < registers[RSP]; i++) {
+          pcall_args.push(memory[i]);
+        }
+
+        // This is important because when we restore RSP, we don't how how many args were provided for the call.
+        // Setting it 'minus args' here will let us simply increment by the number of return values in PRET.
+        registerStateAtCallTime[RSP] -= pcall_args.length;
+
+        // Preserve registers
+        for (let i = 0; i < registerStateAtCallTime.length; i++) {
+          memory[registers[RBP] + i] = registerStateAtCallTime[i];
+        }
+
+        // BP is where first arg sits
+        // Put args on top
+        for (let i = 0; i < pcall_args.length; i++) {
+          memory[registers[RBP] + registers.length + i ] = pcall_args[i];
+        }
+
+        registers[RBP] = registers[RBP] + registers.length;
+        registers[RSP] = registers[RSP] + registers.length;
+
+        pcall_args.splice(0, pcall_args.length);
+
+        // Jump to label
+        registers[RIP] = _labels[memory[rip + 1]];
+        break;
+      case PRET:
+        const registerStateAtReturnTime = [...registers];
+        // Gather retvals
+        let retVals = [];
+        for (let i = registerStateAtReturnTime[RBP]; i < registerStateAtReturnTime[RSP]; i++) {
+          retVals.push(memory[i]);
+        }
+
+        // Restore regs
+        for (let i = 0; i < registerStateAtReturnTime.length; i++) {
+          registers[i] = memory[ registerStateAtReturnTime[RBP] - registers.length + i ];
+        }
+        // Push retvals and adjust SP
+        retVals.forEach(v => {
+          memory[registers[RSP]] = v;
+          registers[RSP]++;
+        });
+
+        retVals.splice(0, retVals.length);
+
+        break;
     }
 
     if (oneStep) break;
@@ -440,7 +504,7 @@ function _execute(memory, registers, codeStart, codeEnd, oneStep, print) {
 // execute(0, memory.length);
 
 function CuteMachine(memory, print=console.log) {
-  this.registers = [0, 0, 0, 0, 0, 0, 64, 0];
+  this.registers = [0, 0, 0, 0, 0, 0, 64, 64, 0];
   this.memory = memory;
   this.print=print;
 
@@ -456,30 +520,3 @@ function CuteMachine(memory, print=console.log) {
 };
 
 module.exports = CuteMachine;
-
-const m = [
-  DATA, "Src", 3, c('5'), c('+'), c('3'),
-  SETI, R0, 5, // R0 is the 'current char' pointer
-
-  // LABEL, 'LOOP',
-  // Load current char into R3
-  PRINT, R0,
-  LOAD, R3, R0,
-  PRINT, R3,
-  // Is it >= '0' (48) ?
-  JMPLT, R3, 48, "NAN", 
-  // Is it also <= '9' (57) ?
-  JMPGT, R3, 57, "NAN",
-  // Working with a number! - print 1
-  SETI, R1, 1,
-  PRINT, R1,
-  JMPL, "DONE",
-
-  LABEL, "NAN",
-  SETI, R0, 0,  // Not working with a number - print 0
-  PRINT, R0,
-  LABEL, "DONE",
-  HALT,
-
-];
-new CuteMachine(m).execute();
