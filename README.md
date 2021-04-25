@@ -5,6 +5,7 @@ CUTE stands for Computer to Understand, Teach and Experiment. It runs in the bro
 - A loader, to place bytecode at any address
 - A birds-eye view of memory (with disassembly overlay) and register state that is editable at any point during execution (also, a stepping debugger!)
 
+Try it out: https://neeilan.github.io/cute/
 
 ## Create React App documentation
 
