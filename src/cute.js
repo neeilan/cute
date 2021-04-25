@@ -475,4 +475,4 @@ function CuteMachine(memory, print=console.log) {
 
 };
 
-module.exports = CuteMachine;
+export default CuteMachine;

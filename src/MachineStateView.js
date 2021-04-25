@@ -8,7 +8,7 @@ import InputGroup from 'react-bootstrap/InputGroup'
 import FormControl from 'react-bootstrap/FormControl'
 import Badge from 'react-bootstrap/Badge'
 
-const CuteMachine = require('./cute');
+import CuteMachine from './cute';
 const Assemble = require('./assembler');
 
 
@@ -236,7 +236,7 @@ class MachineStateView extends React.Component {
                                         placeholder="Address to load program at (Default = 0)"
                                     />
                                     <InputGroup.Append>
-                                        <Button variant="info" onClick={() => this.assemble()}>Load</Button>
+                                        <Button variant="warning" onClick={() => this.assemble()}>Load</Button>
                                     </InputGroup.Append>
                                 </InputGroup>
                             </Col>
