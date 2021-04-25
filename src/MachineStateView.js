@@ -8,7 +8,7 @@ import InputGroup from 'react-bootstrap/InputGroup'
 import FormControl from 'react-bootstrap/FormControl'
 import Badge from 'react-bootstrap/Badge'
 
-import CuteMachine from './cute'
+const CuteMachine = require('./cute');
 const Assemble = require('./assembler');
 
 
