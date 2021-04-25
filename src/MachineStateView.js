@@ -260,11 +260,14 @@ class MachineStateView extends React.Component {
                                     {this.availableInstrs().map((instr, i) => <a key={`instrdoc-${i}`} onClick={()=>this.setState({docInstr: i})}><Badge className="instrDocBtn" pill variant={this.state.docInstr === i ? 'primary' : 'light'}>{instr.name}</Badge>{' '}</a>)}
                                 </h5>
                                 <br/>
-                                { this.state.docInstr === -1 ? '' : this.availableInstrs()[this.state.docInstr].desc}
+                                { this.state.docInstr === -1 ? '' : <>{this.availableInstrs()[this.state.docInstr].desc} <br/> Opcode: {this.state.docInstr} </>}
                             </Col>
                         </Row>
                     </Col>
 
+                </Row>
+                <Row style={{ textAlign: "center", marginTop: '20px' }}>
+                    <a href="https://github.com/neeilan/cute"> View on Github</a>
                 </Row>
             </Container>
         </div >
