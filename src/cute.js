@@ -175,21 +175,14 @@ memory = [
   
 ];
 
-// total = 0
-// current_num = 1
-// while (current_num < 11) { total = total + current_num; current_num = current_num + 1; }
-
 
 function _execute(memory, registers, codeStart, codeEnd, oneStep, print) {
-  // console.log(memory)
-
   // Find labels and static data in the code
   const _labels = {};
   const _statics = {};
   let currInstr = codeStart;
   while (currInstr < codeEnd) {
     const opCode = memory[currInstr];
-    // console.log(opCode);
     if (opCode === LABEL) {
       _labels[ memory[currInstr + 1] ] = currInstr + numArgs[opCode] + 1;
       currInstr += numArgs[opCode] + 1;
@@ -201,13 +194,8 @@ function _execute(memory, registers, codeStart, codeEnd, oneStep, print) {
       currInstr += numArgs[opCode] + 1;
     }
   }
-  // console.log(_statics);
-  // if (!oneStep && _labels['start'] !== undefined) {
-  //   registers[RIP] = _labels['start'];
-  // }
 
   // Execute
-  // console.log("Executing...");
   let lhs = 0, rhs = 0; // Utility vars
   while (registers[RIP] < codeEnd) {
     var rip = registers[RIP];
