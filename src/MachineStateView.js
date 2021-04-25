@@ -11,16 +11,16 @@ import Badge from 'react-bootstrap/Badge'
 import CuteMachine from './cute'
 const Assemble = require('./assembler');
 
-/* props: setMemory(idx, value str) 
-          memory : []
-*/
+
+
+const EXAMPLE_PROGRAMS = require('./example_programs');
 
 const STYLES = {
     ripBgColor: 'LavenderBlush',
     ripColor: 'black',
     tableHeaderColor: 'ivory',
-    rspBgColor: 'Lavender',
-    rbpBgColor: 'red',
+    rspBgColor: 'lavender',
+    rbpBgColor: 'Moccasin',
 };
 
 class MachineStateView extends React.Component {
@@ -136,7 +136,7 @@ class MachineStateView extends React.Component {
             let cols = [];
             for (let i = 0; i < this.numBytesPerRow; i++) { cols.push(i); }
             memTable.push(
-                <tr>
+                <tr key={`row-${i}`}>
                     <td style={{ backgroundColor: STYLES.tableHeaderColor }}>{this.state.memDisplayStartAddr + i}</td>
                     {cols.map(
                         offset => {
@@ -153,7 +153,7 @@ class MachineStateView extends React.Component {
 
                             return <td key={`mem-${i + offset}`}
                                 style={{ backgroundColor: dynaColor, overflow: 'hidden' }}>
-                                {disasmAvailable ? <div class="disasm">{this.state.disasmTokens[absoluteAddr - this.state.loadAddr]}</div> : ''}
+                                {disasmAvailable ? <div className="disasm">{this.state.disasmTokens[absoluteAddr - this.state.loadAddr]}</div> : ''}
                                 <input
                                     type="text"
                                     style={{
@@ -182,7 +182,7 @@ class MachineStateView extends React.Component {
                                     const isRsp = this.machine.REGISTER_NAMES[i] === 'RSP';
                                     const isRbp = this.machine.REGISTER_NAMES[i] === 'RBP';
                                     const dynaColor = isRip ? STYLES.ripBgColor : (isRsp ? STYLES.rspBgColor : (isRbp ? STYLES.rbpBgColor : ''));
-                                    return <tr>
+                                    return <tr key={`reg-row-${i}`}>
                                         <td style={{ backgroundColor: STYLES.tableHeaderColor }}>{this.machine.REGISTER_NAMES[i]}</td>
                                         <td key={`mem-${i}`} style={{ backgroundColor: dynaColor }}>
                                             <input type="text"
@@ -245,11 +245,19 @@ class MachineStateView extends React.Component {
 
 
                     <Col sm={6}>
+                        <Row><Col style={{ marginBottom: '10px' }}><b>Example Programs</b></Col></Row>
+                        <Row>
+                            <Col sm={12} style={{ overflowY: 'scroll' }}>
+                                <h5>
+                                    {EXAMPLE_PROGRAMS.map((p, i) => <a key={`example-prog-${i}`} onClick={() => this.setState({ asmArea: p.source })}><Badge className="instrDocBtn" pill variant="light">{p.name}</Badge>{' '}</a>)}
+                                </h5>
+                            </Col>
+                        </Row>
                         <Row><Col style={{ marginBottom: '10px' }}><b>Instruction Set</b></Col></Row>
                         <Row>
                             <Col sm={12} style={{ overflowY: 'scroll' }}>
                                 <h5>
-                                    {this.availableInstrs().map((instr, i) => <a onClick={()=>this.setState({docInstr: i})}><Badge pill variant={this.state.docInstr === i ? 'primary' : 'light'}>{instr.name}</Badge>{' '}</a>)}
+                                    {this.availableInstrs().map((instr, i) => <a key={`instrdoc-${i}`} onClick={()=>this.setState({docInstr: i})}><Badge className="instrDocBtn" pill variant={this.state.docInstr === i ? 'primary' : 'light'}>{instr.name}</Badge>{' '}</a>)}
                                 </h5>
                                 <br/>
                                 { this.state.docInstr === -1 ? '' : this.availableInstrs()[this.state.docInstr].desc}

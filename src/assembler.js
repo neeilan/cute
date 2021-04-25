@@ -1,17 +1,3 @@
-const CuteMachine = require('./cute');
-
-// const memory = [];
-// const machine = new CuteMachine(memory);
-
-// memory.push(machine.OPS.PRINT, machine.REGISTER_NUMS.RIP);
-// memory.push(machine.OPS.PRINT, machine.REGISTER_NUMS.RIP);
-
-// var source = `
-//     SETI R0 4 # Comment
-//     # More comments
-//     PRINT R0
-// `;
-
 function lex(source) {
     const tokens = [];
     let currTok = [];
@@ -41,7 +27,6 @@ function lex(source) {
         tokens.push(token);
     }
 
-    console.log(tokens);
     return tokens;
 }
 
@@ -67,7 +52,6 @@ function assemble(tokens, machine, out={}) {
             labels[label] = labelNum++;
             const length = parseInt(tokens[i+2]);
             const str = tokens[i+3].split('');  // TODO: Do we really need size here?? Can be implicit.
-            console.log(str)
             for (let j = 0; j < length; j++) {
                 tokens.splice(i + j + 3, 0, str[j].charCodeAt(0));
             }
@@ -78,7 +62,6 @@ function assemble(tokens, machine, out={}) {
             for (let j = 0; j < length; j++) {
                 out.disasm[i + j + 3] = str[j];
             }
-            console.log(tokens)
             i += length;
         } else if (opMeta.name == "LABEL") {
             const label = tokens[i+1];
@@ -93,8 +76,6 @@ function assemble(tokens, machine, out={}) {
         i += opMeta.args + 1;
     }
     i = 0;
-    console.log(tokens);
-    console.log(labels)
 
     while (i < tokens.length) {
         const opStr = tokens[i];
@@ -166,41 +147,4 @@ const Assemble = function(machine, source, loadAtAddr=0) {
  };
 
 module.exports = Assemble;
-
-// source = `
-//     SETI R0 0
-//     SETI R1 1
-//     LABEL "ADDANDINCR"
-//     ADD R0 R1
-//     ADDI R1 1
-//     JMPEQIL R1 11 "PRINTRES"
-//     JMPL "ADDANDINCR"
-//     LABEL "PRINTRES"
-//     PRINT R0
-//   `;
-
-// SETI R0 0
-// SETI R1 1
-// LABEL "ADDANDINCR"
-// ADD R0 R1
-// ADDI R1 1
-// JMPEQIL R1 11 "PRINTRES"
-// JMPL "ADDANDINCR"
-// LABEL "PRINTRES"
-// PRINT R0
-
-// let machine = new CuteMachine(new Array(128).fill(0));
-// Assemble(machine, source);
-// machine.execute();
-
-
-// SETI R1 14
-// SETI R2 16
-// SETI R3 17
-// JMPGT R1 R2 R3
-// PRINT R2
-// JMPL DONE
-// PRINT R1
-// LABEL DONE
-// NOOP
 

@@ -10,17 +10,11 @@ const REGISTER_NAMES = {
   8 : 'RIP',
 };
 
-const REGISTER_NUMS = {
-  'R0' : 0,
-  'R1' : 1,
-  'R2' : 2,
-  'R3' : 3,
-  'R4' : 4,
-  'RRA': 5,
-  'RBP' : 6,
-  'RSP' : 7,
-  'RIP' : 8,
-};
+// Reverse mapping of REGISTER_NAMES
+const REGISTER_NUMS = {};
+for (let num in REGISTER_NAMES) {
+  REGISTER_NUMS[REGISTER_NAMES[num]] = num;
+}
 
 const OPCODES = {
   0: { name: 'HALT', args: 0, desc: 'Args: none  -  Stops execution of the program here. Does not advance IP' },
@@ -28,31 +22,31 @@ const OPCODES = {
   2: { name: 'ADDI', args: 2 , desc: 'Args: <Reg> <Immediate>  -  Sets Reg to Reg + Immediate' },
   3: { name: 'SUB', args: 2 , desc: 'Args: <Reg1> <Reg2>  -  Sets Reg1 to Reg1 - Reg2'  },
   4: { name: 'SUBI', args: 2 , desc: 'Args: <Reg> <Immediate>  -  Sets Reg to Reg - Immediate' },
-  5: { name: 'ASSERT', args: 1 , desc: '' },
-  6: { name: 'LABEL', args: 1 , desc: 'Args: <name>  -  Creates a label with gives name, pointing to next instruction' },
-  7: { name: 'JMPL', args: 1 , desc: '' },
-  8: { name: 'JMPGT', args: 3 , desc: '' },
-  9: { name: 'JMPGTE', args: 3 , desc: '' },
-  10: { name: 'JMPEQ', args: 2 , desc: '' },
-  11: { name: 'PRINT', args: 1 , desc: '' },
+  // 5: { name: 'ASSERT', args: 1 , desc: '' },
+  6: { name: 'LABEL', args: 1 , desc: 'Args: <Label>  -  Creates a label with given name, pointing to next instruction' },
+  7: { name: 'JMPL', args: 1 , desc: 'Args: <Label> - Unconditional jump to the label with given name' },
+  8: { name: 'JMPGT', args: 3 , desc: 'Args: <Reg1> <Reg2> <Label> - Conditional jump to Label if Reg1 > Reg2' },
+  9: { name: 'JMPGTE', args: 3 , desc: 'Args: <Reg1> <Reg2> <Label> - Conditional jump to Label if Reg1 >= Reg2' },
+  10: { name: 'JMPEQ', args: 3 , desc: 'Args: <Reg1> <Reg2> <Immediate> - Conditional jump to Immediate address if Reg1 equals Reg2' },
+  11: { name: 'PRINT', args: 1 , desc: 'Args: <Reg> - Print the value of Reg' },
   12: { name: 'SETI', args: 2 , desc: 'Args: <Reg> <Immediate>  -  Sets Reg to Immediate' },
-  13: { name: 'JMPI', args: 1 , desc: '' },
-  14: { name: 'JMPEQI', args: 3 , desc: '' },
-  15: { name: 'JMPEQIL', args: 3 , desc: 'Args: <Reg> <Immediate> <Label>  -  If value of Reg equals Immediate, jump to Label' },
-  16: { name: 'PRINTBYTE', args: 1 , desc: '' },
-  17: { name: 'DATA', args: 2, varLen: true , desc: '' },
-  18: { name: 'PRINTSTRL', args: 1 , desc: '' },
-  19: { name: 'PRINTBYTEI', args: 1 , desc: '' },
-  20: { name: 'JMPEQL', args: 3 , desc: '' },
+  13: { name: 'JMPI', args: 1 , desc: 'Args:  <Address> - Unconditional jump to Address' },
+  14: { name: 'JMPEQI', args: 3 , desc: 'Args: <Reg> <Address1> <Address2> - If Reg = value at Address1, jump to Address2' },
+  15: { name: 'JMPEQIL', args: 3 , desc: 'Args: <Reg> <Address> <Label>  -  If value of Reg equals Immediate, jump to Label' },
+  16: { name: 'PRINTBYTE', args: 1 , desc: 'Args: <Reg> - PRINT, but Reg is a register contaiing address of byte to print' },
+  17: { name: 'DATA', args: 2, varLen: true , desc: 'VarArgs: <Label> <Length> [Bytes] - Defines static data of given Length, with given Label' },
+  // 18: { name: 'PRINTSTRL', args: 1 , desc: '' },
+  19: { name: 'PRINTBYTEI', args: 1 , desc: 'Args: <Immediate> - Prints ASCII character for the given immediate' },
+  20: { name: 'JMPEQL', args: 3 , desc: 'Args: <Reg1> <Reg2> <Label> - Conditional jump to Label if Reg1 = Reg2' },
   21: { name: 'SET', args: 2 , desc: 'Args: <Reg1> <Reg2>  -  Sets value Reg1 to the value of Reg2' },
-  22: { name: 'JMPLT', args: 3 , desc: '' },
-  23: { name: 'JMPLTE', args: 3 , desc: '' },
+  22: { name: 'JMPLT', args: 3 , desc: 'Args: <Reg1> <Reg2> <Label> - Conditional jump to Label if Reg1 < Reg2' },
+  23: { name: 'JMPLTE', args: 3 , desc: 'Args: <Reg1> <Reg2> <Label> - Conditional jump to Label if Reg1 <= Reg2' },
   24: { name: 'LOAD', args: 2 , desc: 'Args: <Reg1> <Reg2> - Load byte at address held in Reg2 into Reg1' },
   25: { name: 'PUSH', args: 1 , desc: 'Args: <Reg> - Pushes the value of Reg to the top of the stack (RSP) and increments RSP' },
   26: { name: 'POP', args: 1 , desc: 'Args: <Reg>  - Places the value on top of the stack (RSP-1) into Reg and decrements RSP' },
   27: { name: 'CALL', args: 1 , desc: 'Args: <Label>  -  Pushes RRA onto the stack, sets RRA to next instruction, and jumps to Label' },
   28: { name: 'RET', args: 0 , desc: 'Args: None  -  Returns control to the instruction at address RRA. Restores RRA to previous RRA value, which is expected to be on top of the stack (RSP-1)' },
-  29: { name: 'CHDATA', args: 2, varLen: true , desc: '' },
+  29: { name: 'CHDATA', args: 2, varLen: true , desc: 'Varargs: <Label> <Length> STRING - Like DATA, but var-length data arg is provided as a character string. Eg. - CHDATA letters 5 ABCDE' },
   30: { name: 'STORE', args: 2 , desc: 'Args: <Reg1> <Reg2>  -  Stores value of Reg1 at address held in Reg2' },
   31: { name: 'AOL', args: 2 , desc: 'Args: <Label> <Register>  -  Address-of-label instruction. Sets Register to address Label refers to' },
   32: { name: 'STORI', args: 2 , desc: 'Args: <Reg> <Immediate>  -  Stores Immediate value at address held in Reg' },
@@ -61,8 +55,8 @@ const OPCODES = {
   35: { name: 'MULI', args: 2 , desc: 'Args: <Reg> <Immediate>  -  Sets Reg to Reg * Immediate' },
   36: { name: 'DIV', args: 2 , desc: 'Args: <Reg1> <Reg2>  -  Sets Reg1 to Reg1 / Reg2'  },
   37: { name: 'DIVI', args: 2 , desc: 'Args: <Reg> <Immediate>  -  Sets Reg to Reg / Immediate' },
-  38: { name: 'PCALL', args: 1 , desc: 'Preserved call' },
-  39: { name: 'PRET', args: 0 , desc: 'Preserved ret' },
+  38: { name: 'PCALL', args: 1 , desc: 'Preserved call. Like CALL, but preserves all registers' },
+  39: { name: 'PRET', args: 0 , desc: 'RET equivalent for PCALL - restores all preserved registers' },
 
 
 };
@@ -153,7 +147,7 @@ const
     PRET = 39;
 
 const numArgs = [];
-Object.keys(OPCODES).forEach(k => numArgs.push(OPCODES[k].args));
+Object.keys(OPCODES).forEach(k => numArgs[k] = OPCODES[k].args);
 
 const registers = [0, 0, 0, 0, 0, 0, 0, 0];
 const R0 = 0, R1 = 1, R2=2, R3=3, R4=4, RRA=5, RBP= 6, RSP=7, RIP=8;
@@ -162,32 +156,6 @@ const R0 = 0, R1 = 1, R2=2, R3=3, R4=4, RRA=5, RBP= 6, RSP=7, RIP=8;
 let memory = [
   SETI, R1, 1, JMPI, 8, ADDI, R1, 5, ADDI, R1, 8, PRINT, R1, LABEL, 'ADD3MORE', ADDI, R1, 3, PRINT, R1
 ];
-
-// Print numbers 1 to 55
-memory = [
-  SETI, R0, 0, LABEL, "INCRANDPRINT", ADDI, R0, 1, PRINT, R0, JMPEQIL, R0, 55, /*label=*/"DONE", JMPL, "INCRANDPRINT", LABEL, "DONE"
-];
-
-// Print sum of all numbers from 1 to 10
-// R0 is total, R1 is loop var
-// total = 0 ; number we're currently adding = 1
-// add NWCA to total
-// add 1 to NWCA
-// if MWCA = 11, we're done.
-// otherwise, go back to step 2
-// remmeber this outline, because we will revisit this
-memory = [
-  SETI, R0, 0,
-  SETI, R1, 1,
-  LABEL, "ADDANDINCR",
-  ADD, R0, R1,
-  ADDI, R1, 1,
-  JMPEQIL, R1, 11, "PRINTRES",
-  JMPL, "ADDANDINCR",
-  LABEL, "PRINTRES",
-  PRINT, R0
-];
-
 
 // Let's try a hello world
 const c =  char =>  char.charCodeAt(0);
@@ -372,7 +340,7 @@ function _execute(memory, registers, codeStart, codeEnd, oneStep, print) {
        break;
       case AOL:  // AOL label register
         // Puts the address of label label in register
-        const addr = _statics[memory[rip + 1]];
+        let addr = _statics[memory[rip + 1]];
         if (addr === undefined) {
           addr = _labels[memory[rip + 1]];
         } // TODO: labels and statics can be one case
@@ -389,12 +357,12 @@ function _execute(memory, registers, codeStart, codeEnd, oneStep, print) {
         }
        break;
       case PRINTBYTEI:
-        process.stdout.write(String.fromCharCode( memory[rip + 1]  ) );
+        print(String.fromCharCode( memory[rip + 1]  ) );
         registers[RIP] += numArgs[memory[rip]] + 1;
         break;
       case PRINTBYTE:
         const byteToPrint = memory[registers[ memory[rip+1] ] ]; // Arg is a register contaiing address of byte to print
-        console.log( String.fromCharCode( byteToPrint  ) );
+        print( String.fromCharCode( byteToPrint  ) );
         registers[RIP] += numArgs[memory[rip]] + 1;
         break;
       case DATA:
